@@ -1,0 +1,1 @@
+{"version":3,"file":"WildCard.d.ts","sourceRoot":"","sources":["../../src/cards/WildCard.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AAC9B,OAAO,EAAE,QAAQ,EAAE,MAAM,mBAAmB,CAAC;AAE7C,qBAAa,QAAS,SAAQ,IAAI;IACb,IAAI,EAAE,QAAQ;gBAAd,IAAI,EAAE,QAAQ;IAIjC,OAAO,CAAC,CAAC,EAAE,IAAI,GAAG,OAAO;CAG1B"}

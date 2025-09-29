@@ -1,0 +1,1 @@
+{"version":3,"file":"UnoDeck.d.ts","sourceRoot":"","sources":["../../src/deck/UnoDeck.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,IAAI,EAAE,MAAM,eAAe,CAAC;AAMrC,qBAAa,OAAO;IAClB,OAAO,CAAC,KAAK,CAAc;;IAO3B,OAAO,CAAC,YAAY;IA0BpB,IAAI,IAAI,IAAI;IAKZ,OAAO,IAAI,IAAI;IAIf,OAAO,CAAC,IAAI,EAAE,IAAI,GAAG,IAAI;IAIzB,OAAO,IAAI,OAAO;CAGnB"}

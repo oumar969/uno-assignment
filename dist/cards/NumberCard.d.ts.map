@@ -1,0 +1,1 @@
+{"version":3,"file":"NumberCard.d.ts","sourceRoot":"","sources":["../../src/cards/NumberCard.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AAG9B,qBAAa,UAAW,SAAQ,IAAI;IACf,KAAK,EAAE,MAAM;IAAS,KAAK,EAAE,MAAM;gBAAnC,KAAK,EAAE,MAAM,EAAS,KAAK,EAAE,MAAM;IAItD,OAAO,CAAC,IAAI,EAAE,IAAI,GAAG,OAAO;CAM7B"}
