@@ -6,6 +6,7 @@ import { CardType } from "../uno-core/types/CardType";
 import { Card } from "../uno-core/cards/Card";
 
 const games: any[] = [];
+
 const resolvers = {
   Query: {
     games: () => games,
@@ -17,94 +18,101 @@ const resolvers = {
       const id = uuidv4();
       const deck = new UnoDeck();
       const round = new Round([], deck);
-      const game = { id, players: [], round };
+      const game = {
+        id,
+        players: [],
+        round,
+        currentPlayerIndex: 0, // 🔹 første spiller starter
+        direction: 1, // 🔹 1 = med uret, -1 = mod uret
+      };
       games.push(game);
       return game;
     },
 
-   joinGame: (_: any, { gameId, name }: { gameId: string; name: string }, context: any) => {
-  const game = games.find((g) => g.id === gameId);
-  if (!game) throw new Error("Game not found");
+    joinGame: (_: any, { gameId, name }: { gameId: string; name: string }, context: any) => {
+      const game = games.find((g) => g.id === gameId);
+      if (!game) throw new Error("Game not found");
 
-  const viewerId = context.viewerId;
+      const viewerId = context.viewerId;
+      let player = game.players.find((p: any) => p.id === viewerId || p.name === name);
 
-  // 👇 Først, prøv at finde spilleren (samme viewerId eller navn)
-  let player = game.players.find((p: any) => p.id === viewerId || p.name === name);
+      if (!player) {
+        player = { id: uuidv4(), name, hand: new PlayerHand() };
 
-  if (!player) {
-    // 👇 Hvis ikke fundet, opret en HELT ny spiller (nyt ID)
-    player = { id: uuidv4(), name, hand: new PlayerHand() };
+        // Giv 7 kort fra bunken
+        for (let i = 0; i < 7; i++) {
+          player.hand.addCard(game.round.drawPile.draw());
+        }
 
-    // Giv 7 kort fra bunken
-    for (let i = 0; i < 7; i++) {
-      player.hand.addCard(game.round.drawPile.draw());
-    }
+        game.players.push(player);
+      }
 
-    game.players.push(player);
-  }
+      console.log("✅ Player joined:", player.id, "viewer:", viewerId, "game:", gameId);
 
-  // 👇 men GEM spillerens ID i localStorage på frontend efter join (frontend gør dette)
-  console.log("✅ Player joined:", player.id, "viewer:", viewerId, "game:", gameId);
+      return game;
+    },
 
-  // Returner spillet
-  return {
-    ...game,
-    players: game.players.map((p: any) => ({
-      id: p.id,
-      name: p.name,
-      hand:
-        p.id === player.id
-          ? p.hand.getCards().map((card: Card) => ({
-              color: card.color,
-              type: CardType[card.type],
-              value: (card as any).value ?? null,
-            }))
-          : [],
-    })),
-  };
-},
+    playCard: (_: any, { gameId, playerId, cardIndex }: any) => {
+      const game = games.find((g) => g.id === gameId);
+      if (!game) throw new Error("Game not found");
 
+      const player = game.players.find((p: any) => p.id === playerId);
+      if (!player) throw new Error("Player not found");
 
-playCard: (_: any, { gameId, playerId, cardIndex }: any) => {
-  const game = games.find((g) => g.id === gameId);
-  if (!game) throw new Error("Game not found");
+      // 🚫 Kun den spiller der har tur må spille
+      const currentPlayer = game.players[game.currentPlayerIndex];
+      if (player.id !== currentPlayer.id) {
+        throw new Error("Not your turn!");
+      }
 
-  const player = game.players.find((p: any) => p.id === playerId);
-  if (!player) throw new Error("Player not found");
+      const handCards = player.hand.getCards();
+      const card = handCards[cardIndex];
+      if (!card) throw new Error("Card not found");
 
-  const handCards = player.hand.getCards();
-  const card = handCards[cardIndex];
-  if (!card) throw new Error("Card not found");
+      const discard = game.round.discardPile;
+      const top = discard[discard.length - 1];
+      if (!top) throw new Error("No top card found");
 
-  // hent topkort
-  const discard = game.round.discardPile;
-  const top = discard[discard.length - 1];
+      const cardType = typeof card.type === "number" ? CardType[card.type] : card.type;
+      const topType = typeof top.type === "number" ? CardType[top.type] : top.type;
 
-  // ✅ UNO regler
-  const sameColor = card.color === top.color;
-  const sameValue = (card as any).value !== undefined && (card as any).value === (top as any).value;
-  const sameType = card.type === top.type;
+      const sameColor = card.color === top.color;
+      const sameValue =
+        (card as any).value !== undefined &&
+        (top as any).value !== undefined &&
+        (card as any).value === (top as any).value;
+      const isWild = cardType === "Wild" || cardType === "WildDrawFour";
 
-  const isWild = card.type === CardType.Wild || card.type === CardType.WildDrawFour;
+      if (!(sameColor || sameValue || isWild)) {
+        throw new Error(
+          `Illegal move: ${card.color} ${cardType} does not match ${top.color} ${topType}`
+        );
+      }
 
-  if (!(sameColor || sameValue || sameType || isWild)) {
-    throw new Error("Illegal move: card does not match top card");
-  }
+      // ✅ Spil kortet
+      player.hand.playCard(cardIndex);
+      discard.push(card);
 
-  // fjern kortet fra spillerens hånd
-  player.hand.playCard(cardIndex);
+      // 🔁 Håndter specialkort
+      if (cardType === "Reverse") {
+        game.direction *= -1; // skift retning
+      }
+      if (cardType === "Skip") {
+        // spring næste spiller over
+        game.currentPlayerIndex =
+          (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
+      }
 
-  // læg på bunken
-  discard.push(card);
+      // 🔄 Skift til næste spiller
+      game.currentPlayerIndex =
+        (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
 
-  return {
-    ...game,
-    players: game.players.map((p: any) => ({
-      ...p,
-      hand: p.hand.getCards(), // vigtigt!
-    })),
-  };
-},
+      console.log(
+        `➡️ Next turn: ${game.players[game.currentPlayerIndex].name} (${game.players[game.currentPlayerIndex].id})`
+      );
+
+      return game;
+    },
 
     drawCard: (_: any, { gameId, playerId }: any) => {
       const game = games.find((g) => g.id === gameId);
@@ -113,13 +121,25 @@ playCard: (_: any, { gameId, playerId, cardIndex }: any) => {
       const player = game.players.find((p: any) => p.id === playerId);
       if (!player) throw new Error("Player not found");
 
+      // ✅ kun hvis det er spillerens tur
+      const currentPlayer = game.players[game.currentPlayerIndex];
+      if (player.id !== currentPlayer.id) {
+        throw new Error("Not your turn!");
+      }
+
       player.hand.addCard(game.round.drawPile.draw());
+
+      // Efter træk → næste tur
+      game.currentPlayerIndex =
+        (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
+
       return game;
     },
   },
 
   Game: {
     players: (game: any) => game.players,
+
     topCard: (game: any) => {
       const discard = game.round?.discardPile;
       if (!discard || discard.length === 0) return null;
@@ -131,25 +151,31 @@ playCard: (_: any, { gameId, playerId, cardIndex }: any) => {
         value: (top as any).value ?? null,
       };
     },
+
+    // 🔹 viser hvem der har tur
+    currentPlayer: (game: any) => {
+      const player = game.players[game.currentPlayerIndex];
+      return player
+        ? { id: player.id, name: player.name }
+        : null;
+    },
   },
 
   Player: {
-   hand: (player: any, _: any, context: any) => {
-  // Hvis viewerId ikke er sat (fx ved refresh), giv ikke alle kort væk!
-  if (!context?.viewerId) return [];
+    hand: (player: any, _: any, context: any) => {
+      if (!context?.viewerId) return [];
 
-  // Returnér kun håndkort til den spiller som matcher viewerId
-  if (player.id === context.viewerId) {
-    return player.hand.getCards().map((card: Card) => ({
-      color: card.color,
-      type: CardType[card.type],
-      value: (card as any).value ?? null,
-    }));
-  }
+      if (player.id === context.viewerId) {
+        return player.hand.getCards().map((card: Card) => ({
+          color: card.color,
+          type: CardType[card.type],
+          value: (card as any).value ?? null,
+        }));
+      }
 
-  // Ellers returner tom hånd (andre spillere)
-  return [];
-},
+      return [];
+    },
   },
 };
+
 export default resolvers;
