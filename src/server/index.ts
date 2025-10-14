@@ -20,6 +20,10 @@ const start = async () => {
     },
   });
   console.log(`🚀 Server klar på: ${url}`);
+  console.log(`📭 GraphQL Playground: ${url}playground`);
+  console.log(`🧑‍💻 Apollo Studio: https://studio.apollographql.com/sandbox/explorer`);
+  console.log(`🔗 GraphiQL: ${url}graphiql`);
+  console.log(`📝 Dokumentation: ${url}docs`);
 };
 
 start();

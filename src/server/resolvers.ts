@@ -22,19 +22,49 @@ const resolvers = {
       return game;
     },
 
-    joinGame: (_: any, { gameId, name }: { gameId: string; name: string }) => {
-      const game = games.find((g) => g.id === gameId);
-      if (!game) throw new Error("Game not found");
+   joinGame: (_: any, { gameId, name }: { gameId: string; name: string }, context: any) => {
+  const game = games.find((g) => g.id === gameId);
+  if (!game) throw new Error("Game not found");
 
-      const player = { id: uuidv4(), name, hand: new PlayerHand() };
+  const viewerId = context.viewerId;
 
-      for (let i = 0; i < 7; i++) {
-        player.hand.addCard(game.round.drawPile.draw());
-      }
+  // 👇 Først, prøv at finde spilleren (samme viewerId eller navn)
+  let player = game.players.find((p: any) => p.id === viewerId || p.name === name);
 
-      game.players.push(player);
-      return game;
-    },
+  if (!player) {
+    // 👇 Hvis ikke fundet, opret en HELT ny spiller (nyt ID)
+    player = { id: uuidv4(), name, hand: new PlayerHand() };
+
+    // Giv 7 kort fra bunken
+    for (let i = 0; i < 7; i++) {
+      player.hand.addCard(game.round.drawPile.draw());
+    }
+
+    game.players.push(player);
+  }
+
+  // 👇 men GEM spillerens ID i localStorage på frontend efter join (frontend gør dette)
+  console.log("✅ Player joined:", player.id, "viewer:", viewerId, "game:", gameId);
+
+  // Returner spillet
+  return {
+    ...game,
+    players: game.players.map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      hand:
+        p.id === player.id
+          ? p.hand.getCards().map((card: Card) => ({
+              color: card.color,
+              type: CardType[card.type],
+              value: (card as any).value ?? null,
+            }))
+          : [],
+    })),
+  };
+},
+
+
 playCard: (_: any, { gameId, playerId, cardIndex }: any) => {
   const game = games.find((g) => g.id === gameId);
   if (!game) throw new Error("Game not found");
@@ -104,17 +134,22 @@ playCard: (_: any, { gameId, playerId, cardIndex }: any) => {
   },
 
   Player: {
-    hand: (player: any, _: any, context: any) => {
-      if (player.id === context.viewerId) {
-        return player.hand.getCards().map((card: Card) => ({
-          color: card.color,
-          type: CardType[card.type],
-          value: (card as any).value ?? null,
-        }));
-      }
-      return [];
-    },
-    handCount: (player: any) => player.hand.getCardCount(),
+   hand: (player: any, _: any, context: any) => {
+  // Hvis viewerId ikke er sat (fx ved refresh), giv ikke alle kort væk!
+  if (!context?.viewerId) return [];
+
+  // Returnér kun håndkort til den spiller som matcher viewerId
+  if (player.id === context.viewerId) {
+    return player.hand.getCards().map((card: Card) => ({
+      color: card.color,
+      type: CardType[card.type],
+      value: (card as any).value ?? null,
+    }));
+  }
+
+  // Ellers returner tom hånd (andre spillere)
+  return [];
+},
   },
 };
 export default resolvers;
