@@ -5,7 +5,6 @@ import { useRouter } from "vue-router";
 
 const router = useRouter();
 
-// Queries & mutations
 const GET_GAMES = gql`
   query {
     games {
@@ -38,16 +37,29 @@ const JOIN_GAME = gql`
   }
 `;
 
-// Apollo hooks
 const { result, loading, error } = useQuery(GET_GAMES);
 const { mutate: createGame } = useMutation(CREATE_GAME);
 const { mutate: joinGame } = useMutation(JOIN_GAME);
 
-// Handlers
 async function handleCreateGame() {
+  const name = prompt("Enter your name:");
+  if (!name) return;
+
   const res = await createGame();
   if (res?.data?.createGame) {
-    router.push(`/game/${res.data.createGame.id}`);
+    const gameId = res.data.createGame.id;
+
+    // join automatisk
+    const joinRes = await joinGame({ gameId, name });
+    const myPlayer = joinRes?.data?.joinGame?.players?.find((p: any) => p.name === name);
+    if (myPlayer) {
+      localStorage.setItem("myPlayerId", myPlayer.id);
+    }
+
+    if (joinRes?.data?.joinGame) {
+      sessionStorage.setItem("latestGame", JSON.stringify(joinRes.data.joinGame));
+      router.push(`/game/${gameId}`);
+    }
   }
 }
 
@@ -57,13 +69,12 @@ async function handleJoinGame(gameId: string) {
 
   const res = await joinGame({ gameId, name });
   if (res?.data?.joinGame) {
-    // find den spiller vi selv er
     const myPlayer = res.data.joinGame.players.find((p: any) => p.name === name);
-
     if (myPlayer) {
       localStorage.setItem("myPlayerId", myPlayer.id);
     }
 
+    sessionStorage.setItem("latestGame", JSON.stringify(res.data.joinGame));
     router.push(`/game/${res.data.joinGame.id}`);
   }
 }

@@ -1,7 +1,7 @@
 import { ApolloServer } from "@apollo/server";
 import { startStandaloneServer } from "@apollo/server/standalone";
-import { typeDefs } from "./schema";   // <- dine GraphQL typeDefs
-import resolvers from "./resolvers";   // <- dine resolvers
+import { typeDefs } from "./schema";
+import resolvers from "./resolvers";
 
 // Opret server
 const server = new ApolloServer({
@@ -13,9 +13,13 @@ const server = new ApolloServer({
 const start = async () => {
   const { url } = await startStandaloneServer(server, {
     listen: { port: 4000 },
+    context: async ({ req }) => {
+      const viewerId = req.headers["x-player-id"] || null;
+      console.log("Viewer ID:", viewerId);
+      return { viewerId };
+    },
   });
-
-  console.log(`🚀 Server ready at ${url}`);
+  console.log(`🚀 Server klar på: ${url}`);
 };
 
 start();

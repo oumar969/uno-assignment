@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useRoute } from "vue-router";// to access route params
-import { useQuery } from "@vue/apollo-composable"; // for GraphQL queries
+import { useRoute } from "vue-router";
+import { useQuery, useMutation } from "@vue/apollo-composable";
+import { onMounted } from "vue"; // ✅ DU MANGLEDE DEN HER IMPORT
 import gql from "graphql-tag";
 import Card from "./Card.vue";
 
@@ -8,7 +9,7 @@ const route = useRoute();
 const gameId = route.params.id as string;
 const myPlayerId = localStorage.getItem("myPlayerId");
 
-// GraphQL query
+// ✅ Queries
 const GET_GAME = gql`
   query ($id: ID!) {
     game(id: $id) {
@@ -31,14 +32,92 @@ const GET_GAME = gql`
   }
 `;
 
-const { result, loading, error } = useQuery(GET_GAME, { id: gameId });
+// ✅ Mutations
+const PLAY_CARD = gql`
+  mutation PlayCard($gameId: ID!, $playerId: ID!, $cardIndex: Int!) {
+    playCard(gameId: $gameId, playerId: $playerId, cardIndex: $cardIndex) {
+      id
+      topCard {
+        color
+        type
+        value
+      }
+      players {
+        id
+        name
+        hand {
+          color
+          type
+          value
+        }
+      }
+    }
+  }
+`;
 
-function playCard(card: { color: string; type: string; value?: number }) {
-  alert(`You played: ${card.color} ${card.type}`);
+const DRAW_CARD = gql`
+  mutation DrawCard($gameId: ID!, $playerId: ID!) {
+    drawCard(gameId: $gameId, playerId: $playerId) {
+      id
+      topCard {
+        color
+        type
+        value
+      }
+      players {
+        id
+        name
+        hand {
+          color
+          type
+          value
+        }
+      }
+    }
+  }
+`;
+
+// ✅ Korrekt brug af useQuery
+const { result, loading, error, refetch } = useQuery(
+  GET_GAME,
+  { id: gameId },
+  { fetchPolicy: "no-cache" }
+);
+
+const { mutate: playCardMutation } = useMutation(PLAY_CARD);
+const { mutate: drawCardMutation } = useMutation(DRAW_CARD);
+
+// 🟢 Automatisk refetch når siden indlæses
+onMounted(() => {
+  refetch();
+});
+
+// 👉 Når man klikker på et kort
+function playCard(_card: { color: string; type: string; value?: number }, index: number) {
+  if (!myPlayerId) return;
+
+  playCardMutation({
+    gameId,
+    playerId: myPlayerId,
+    cardIndex: index,
+  })
+    .then(() => {
+      refetch();
+    })
+    .catch((err) => {
+      alert(err.message);
+    });
 }
 
 function drawCard() {
-  alert("You drew a card");
+  if (!myPlayerId) return;
+
+  drawCardMutation({
+    gameId,
+    playerId: myPlayerId,
+  }).then(() => {
+    refetch();
+  });
 }
 </script>
 
@@ -65,7 +144,7 @@ function drawCard() {
       <div v-for="player in result.game.players" :key="player.id">
         <h3>{{ player.name }}'s Hand</h3>
 
-        <!-- Kun vis egne kort -->
+        <!-- Kun egne kort -->
         <div v-if="player.id === myPlayerId" class="hand">
           <Card
             v-for="(card, i) in player.hand"
@@ -73,7 +152,7 @@ function drawCard() {
             :color="card.color"
             :type="card.type"
             :value="card.value"
-            @click="playCard(card)"
+            @click="playCard(card, i)"
           />
         </div>
 
