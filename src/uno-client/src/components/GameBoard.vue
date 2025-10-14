@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
 import { useQuery, useMutation } from "@vue/apollo-composable";
-import { onMounted } from "vue"; // ✅ DU MANGLEDE DEN HER IMPORT
+import { onMounted } from "vue";
 import gql from "graphql-tag";
 import Card from "./Card.vue";
 
@@ -34,8 +34,18 @@ const GET_GAME = gql`
 
 // ✅ Mutations
 const PLAY_CARD = gql`
-  mutation PlayCard($gameId: ID!, $playerId: ID!, $cardIndex: Int!) {
-    playCard(gameId: $gameId, playerId: $playerId, cardIndex: $cardIndex) {
+  mutation PlayCard(
+    $gameId: ID!,
+    $playerId: ID!,
+    $cardIndex: Int!,
+    $chosenColor: String
+  ) {
+    playCard(
+      gameId: $gameId,
+      playerId: $playerId,
+      cardIndex: $cardIndex,
+      chosenColor: $chosenColor
+    ) {
       id
       topCard {
         color
@@ -77,7 +87,7 @@ const DRAW_CARD = gql`
   }
 `;
 
-// ✅ Korrekt brug af useQuery
+// ✅ useQuery og mutation hooks
 const { result, loading, error, refetch } = useQuery(
   GET_GAME,
   { id: gameId },
@@ -87,28 +97,37 @@ const { result, loading, error, refetch } = useQuery(
 const { mutate: playCardMutation } = useMutation(PLAY_CARD);
 const { mutate: drawCardMutation } = useMutation(DRAW_CARD);
 
-// 🟢 Automatisk refetch når siden indlæses
+// 🟢 Refetch ved mount
 onMounted(() => {
   refetch();
 });
 
 // 👉 Når man klikker på et kort
-function playCard(_card: { color: string; type: string; value?: number }, index: number) {
+function playCard(card: { color: string; type: string; value?: number }, index: number) {
   if (!myPlayerId) return;
+
+  let chosenColor: string | null = null;
+  const isWild = card.type === "Wild" || card.type === "WildDrawFour";
+
+  if (isWild) {
+    chosenColor = prompt("Vælg farve (red, blue, green, yellow):")?.toLowerCase() || null;
+    if (!["red", "blue", "green", "yellow"].includes(chosenColor || "")) {
+      alert("Ugyldig farve!");
+      return;
+    }
+  }
 
   playCardMutation({
     gameId,
     playerId: myPlayerId,
     cardIndex: index,
+    chosenColor,
   })
-    .then(() => {
-      refetch();
-    })
-    .catch((err) => {
-      alert(err.message);
-    });
-}
+    .then(() => refetch())
+    .catch((err) => alert(err.message));
+} // 👈 Manglede denne lukning!
 
+// 👉 Træk et kort
 function drawCard() {
   if (!myPlayerId) return;
 
@@ -120,6 +139,7 @@ function drawCard() {
   });
 }
 </script>
+
 
 <template>
   <div>

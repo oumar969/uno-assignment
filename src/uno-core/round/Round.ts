@@ -86,13 +86,13 @@ export class Round {
 
       case CardType.Wild:
         console.log('🌈 Wild! Choosing a color...');
-        this.chooseRandomColor(card as WildCard);
+        //this.chooseRandomColor(card as WildCard);
         this.nextPlayer();
         break;
 
       case CardType.WildDrawFour:
         console.log('🌈➕4! Next player draws 4 cards');
-        this.chooseRandomColor(card as WildCard);
+        //this.chooseRandomColor(card as WildCard);
         this.forceDraw(4);
         this.nextPlayer();
         this.nextPlayer(); // spring turen over

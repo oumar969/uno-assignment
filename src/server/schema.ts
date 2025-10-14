@@ -29,7 +29,7 @@ export const typeDefs = gql`
   type Mutation {
     createGame: Game!
     joinGame(gameId: ID!, name: String!): Game!
-    playCard(gameId: ID!, playerId: ID!, cardIndex: Int!): Game!
+  playCard(gameId: ID!, playerId: ID!, cardIndex: Int!, chosenColor: String): Game! # 👈 vigtigt
     drawCard(gameId: ID!, playerId: ID!): Game!
   }
 `;

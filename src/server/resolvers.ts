@@ -25,8 +25,11 @@ const resolvers = {
         currentPlayerIndex: 0, // 🔹 første spiller starter
         direction: 1, // 🔹 1 = med uret, -1 = mod uret
       };
+           // game.round.activeColor = null; // 👈 den nuværende farve på bordet
+
       games.push(game);
       return game;
+      
     },
 
     joinGame: (_: any, { gameId, name }: { gameId: string; name: string }, context: any) => {
@@ -52,67 +55,102 @@ const resolvers = {
       return game;
     },
 
-    playCard: (_: any, { gameId, playerId, cardIndex }: any) => {
-      const game = games.find((g) => g.id === gameId);
-      if (!game) throw new Error("Game not found");
+    playCard: (_: any, { gameId, playerId, cardIndex, chosenColor }: any) => {
+  const game = games.find((g) => g.id === gameId);
+  if (!game) throw new Error("Game not found");
 
-      const player = game.players.find((p: any) => p.id === playerId);
-      if (!player) throw new Error("Player not found");
+  const player = game.players.find((p: any) => p.id === playerId);
+  if (!player) throw new Error("Player not found");
 
-      // 🚫 Kun den spiller der har tur må spille
-      const currentPlayer = game.players[game.currentPlayerIndex];
-      if (player.id !== currentPlayer.id) {
-        throw new Error("Not your turn!");
-      }
+  // 🚫 Kun den spiller der har tur må spille
+  const currentPlayer = game.players[game.currentPlayerIndex];
+  if (player.id !== currentPlayer.id) {
+    throw new Error("Not your turn!");
+  }
 
-      const handCards = player.hand.getCards();
-      const card = handCards[cardIndex];
-      if (!card) throw new Error("Card not found");
+  const handCards = player.hand.getCards();
+  const card = handCards[cardIndex];
+  if (!card) throw new Error("Card not found");
 
-      const discard = game.round.discardPile;
-      const top = discard[discard.length - 1];
-      if (!top) throw new Error("No top card found");
+  const discard = game.round.discardPile;
+  const top = discard[discard.length - 1];
+  if (!top) throw new Error("No top card found");
 
-      const cardType = typeof card.type === "number" ? CardType[card.type] : card.type;
-      const topType = typeof top.type === "number" ? CardType[top.type] : top.type;
+  const cardType = typeof card.type === "number" ? CardType[card.type] : card.type;
+  const topType = typeof top.type === "number" ? CardType[top.type] : top.type;
 
-      const sameColor = card.color === top.color;
-      const sameValue =
-        (card as any).value !== undefined &&
-        (top as any).value !== undefined &&
-        (card as any).value === (top as any).value;
-      const isWild = cardType === "Wild" || cardType === "WildDrawFour";
+  // 🎨 brug den aktive farve, hvis den er sat
+  const activeColor = game.round.activeColor || top.color;
 
-      if (!(sameColor || sameValue || isWild)) {
-        throw new Error(
-          `Illegal move: ${card.color} ${cardType} does not match ${top.color} ${topType}`
-        );
-      }
+  const sameColor = card.color === activeColor;
+  const sameValue =
+    (card as any).value !== undefined &&
+    (top as any).value !== undefined &&
+    (card as any).value === (top as any).value;
+  const isWild = cardType === "Wild" || cardType === "WildDrawFour";
 
-      // ✅ Spil kortet
-      player.hand.playCard(cardIndex);
-      discard.push(card);
+  if (!(sameColor || sameValue || isWild)) {
+    throw new Error(
+      `Illegal move: ${card.color} ${cardType} does not match ${activeColor}`
+    );
+  }
 
-      // 🔁 Håndter specialkort
-      if (cardType === "Reverse") {
-        game.direction *= -1; // skift retning
-      }
-      if (cardType === "Skip") {
-        // spring næste spiller over
-        game.currentPlayerIndex =
-          (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
-      }
+  // ✅ Spil kortet
+  player.hand.playCard(cardIndex);
+  discard.push(card);
 
-      // 🔄 Skift til næste spiller
-      game.currentPlayerIndex =
-        (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
+  // 🎨 Håndter farvevalg ved Wild-kort
+  if (isWild) {
+    if (!chosenColor) {
+      throw new Error("You must choose a color for a Wild card!");
+    }
+    game.round.activeColor = chosenColor;
+    console.log(`🎨 Wild color chosen: ${chosenColor}`);
+  } else {
+    // Ellers sæt farven til kortets farve
+    game.round.activeColor = card.color;
+  }
 
-      console.log(
-        `➡️ Next turn: ${game.players[game.currentPlayerIndex].name} (${game.players[game.currentPlayerIndex].id})`
-      );
+  // 🔁 Håndter specialkort
+  if (cardType === "Reverse") {
+    game.direction *= -1; // skift retning
+  }
 
-      return game;
-    },
+  if (cardType === "Skip") {
+    // spring næste spiller over
+    game.currentPlayerIndex =
+      (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
+  }
+
+  if (cardType === "DrawTwo") {
+    // næste spiller trækker 2 kort
+    const nextIndex =
+      (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
+    const nextPlayer = game.players[nextIndex];
+    nextPlayer.hand.addCard(game.round.drawPile.draw());
+    nextPlayer.hand.addCard(game.round.drawPile.draw());
+    console.log(`➕2! ${nextPlayer.name} trækker 2 kort`);
+  }
+
+  if (cardType === "WildDrawFour") {
+    // næste spiller trækker 4 kort
+    const nextIndex =
+      (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
+    const nextPlayer = game.players[nextIndex];
+    for (let i = 0; i < 4; i++) nextPlayer.hand.addCard(game.round.drawPile.draw());
+    console.log(`🌈➕4! ${nextPlayer.name} trækker 4 kort`);
+  }
+
+  // 🔄 Skift tur
+  game.currentPlayerIndex =
+    (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
+
+  console.log(
+    `➡️ Next turn: ${game.players[game.currentPlayerIndex].name} (${game.players[game.currentPlayerIndex].id})`
+  );
+
+  return game;
+},
 
     drawCard: (_: any, { gameId, playerId }: any) => {
       const game = games.find((g) => g.id === gameId);
