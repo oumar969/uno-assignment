@@ -1,12 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
-import GameLobby from "../components/GameLobby.vue";
-import GameBoard from "../components/GameBoard.vue";
+import GameLobby from "../views/GameLobby.vue";
+import GameBoard from "../views/GameBoard.vue";
 
 
 const routes = [
   { path: "/", component: GameLobby },
   { path: "/game/:id", component: GameBoard },
-  
 ];
 
 export const router = createRouter({

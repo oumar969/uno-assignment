@@ -4,6 +4,7 @@ import { PlayerHand } from "../uno-core/player/PlayerHand";
 import { Round } from "../uno-core/round/Round";
 import { CardType } from "../uno-core/types/CardType";
 import { Card } from "../uno-core/cards/Card";
+import { pubsub } from "../server/index";
 
 const games: any[] = [];
 
@@ -33,27 +34,34 @@ const resolvers = {
     },
 
     joinGame: (_: any, { gameId, name }: { gameId: string; name: string }, context: any) => {
-      const game = games.find((g) => g.id === gameId);
-      if (!game) throw new Error("Game not found");
+  const game = games.find((g) => g.id === gameId);
+  if (!game) throw new Error("Game not found");
 
-      const viewerId = context.viewerId;
-      let player = game.players.find((p: any) => p.id === viewerId || p.name === name);
+  const viewerId = context.viewerId;
+  let player = game.players.find((p: any) => p.id === viewerId || p.name === name);
 
-      if (!player) {
-        player = { id: uuidv4(), name, hand: new PlayerHand() };
+  if (!player) {
+    player = { id: uuidv4(), name, hand: new PlayerHand() };
 
-        // Giv 7 kort fra bunken
-        for (let i = 0; i < 7; i++) {
-          player.hand.addCard(game.round.drawPile.draw());
-        }
+    // Giv 7 kort fra bunken
+    for (let i = 0; i < 7; i++) {
+      player.hand.addCard(game.round.drawPile.draw());
+    }
 
-        game.players.push(player);
-      }
+    game.players.push(player);
+    pubsub.publish("GAME_UPDATED", { gameUpdated: game });
 
-      console.log("✅ Player joined:", player.id, "viewer:", viewerId, "game:", gameId);
+    // 👇 Tilføj dette her!
+    // Første spiller der joiner skal starte spillet
+    if (game.players.length === 1) {
+      game.currentPlayerIndex = 0;
+    }
+  }
 
-      return game;
-    },
+  console.log("✅ Player joined:", player.id, "viewer:", viewerId, "game:", gameId);
+
+  return game;
+},
 
     playCard: (_: any, { gameId, playerId, cardIndex, chosenColor }: any) => {
   const game = games.find((g) => g.id === gameId);
@@ -98,7 +106,14 @@ const resolvers = {
   // ✅ Spil kortet
   player.hand.playCard(cardIndex);
   discard.push(card);
-
+    
+  // 🏁 TJEK FOR VINDER
+  if (player.hand.getCards().length === 0) {
+    game.winner = player.name; // 👈 Tilføj winner-feltet
+    console.log(`🎉 ${player.name} vandt spillet!`);
+    pubsub.publish("GAME_UPDATED", { gameUpdated: game });
+    return game;
+  }
   // 🎨 Håndter farvevalg ved Wild-kort
   if (isWild) {
     if (!chosenColor) {
@@ -139,6 +154,7 @@ const resolvers = {
     const nextPlayer = game.players[nextIndex];
     for (let i = 0; i < 4; i++) nextPlayer.hand.addCard(game.round.drawPile.draw());
     console.log(`🌈➕4! ${nextPlayer.name} trækker 4 kort`);
+    pubsub.publish("GAME_UPDATED", { gameUpdated: game });
   }
 
   // 🔄 Skift tur
@@ -166,6 +182,7 @@ const resolvers = {
       }
 
       player.hand.addCard(game.round.drawPile.draw());
+      pubsub.publish("GAME_UPDATED", { gameUpdated: game });
 
       // Efter træk → næste tur
       game.currentPlayerIndex =
@@ -174,21 +191,26 @@ const resolvers = {
       return game;
     },
   },
-
+Subscription: {
+  gameUpdated: {
+    subscribe: (_: any, { id }: any) => (pubsub as any).asyncIterator(["GAME_UPDATED"]),
+  },
+},
   Game: {
-    players: (game: any) => game.players,
+  players: (game: any) => game.players,
 
-    topCard: (game: any) => {
-      const discard = game.round?.discardPile;
-      if (!discard || discard.length === 0) return null;
+  topCard: (game: any) => {
+    const discard = game.round?.discardPile;
+    if (!discard || discard.length === 0) return null;
+    const top: Card = discard[discard.length - 1];
+    return {
+      color: top.color,
+      type: CardType[top.type],
+      value: (top as any).value ?? null,
+    };
+  },
 
-      const top: Card = discard[discard.length - 1];
-      return {
-        color: top.color,
-        type: CardType[top.type],
-        value: (top as any).value ?? null,
-      };
-    },
+  activeColor: (game: any) => game.round.activeColor || null, 
 
     // 🔹 viser hvem der har tur
     currentPlayer: (game: any) => {
@@ -200,20 +222,36 @@ const resolvers = {
   },
 
   Player: {
-    hand: (player: any, _: any, context: any) => {
-      if (!context?.viewerId) return [];
+  hand: (player: any, _: any, context: any) => {
+    // Hvis ingen viewerId -> vis alt (dev-mode)
+    if (!context?.viewerId) {
+      return player.hand.getCards().map((card: Card) => ({
+        color: card.color,
+        type: CardType[card.type],
+        value: (card as any).value ?? null,
+        back: false,
+      }));
+    }
 
-      if (player.id === context.viewerId) {
-        return player.hand.getCards().map((card: Card) => ({
-          color: card.color,
-          type: CardType[card.type],
-          value: (card as any).value ?? null,
-        }));
-      }
+    // Hvis det er dig selv → vis hele hånden
+    if (player.id === context.viewerId) {
+      return player.hand.getCards().map((card: Card) => ({
+        color: card.color,
+        type: CardType[card.type],
+        value: (card as any).value ?? null,
+        back: false,
+      }));
+    }
 
-      return [];
-    },
+    // Andre spillere → vis bagsider
+    return player.hand.getCards().map(() => ({
+      color: null,
+      type: null,
+      value: null,
+      back: true,
+    }));
   },
+},
 };
 
 export default resolvers;

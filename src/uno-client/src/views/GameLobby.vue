@@ -1,0 +1,106 @@
+<script setup lang="ts">
+import { useQuery, useMutation } from "@vue/apollo-composable";
+import gql from "graphql-tag";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+
+const GET_GAMES = gql`
+  query {
+    games {
+      id
+      players {
+        id
+        name
+      }
+    }
+  }
+`;
+
+const CREATE_GAME = gql`
+  mutation {
+    createGame {
+      id
+    }
+  }
+`;
+
+const JOIN_GAME = gql`
+  mutation JoinGame($gameId: ID!, $name: String!) {
+    joinGame(gameId: $gameId, name: $name) {
+      id
+      players {
+        id
+        name
+      }
+    }
+  }
+`;
+
+const { result, loading, error, refetch } = useQuery(GET_GAMES, null, {
+  fetchPolicy: "no-cache",
+});
+const { mutate: createGame } = useMutation(CREATE_GAME);
+const { mutate: joinGame } = useMutation(JOIN_GAME);
+
+async function handleCreateGame() {
+  const name = prompt("Enter your name:");
+  if (!name) return;
+
+  const res = await createGame();
+  if (res?.data?.createGame) {
+    const gameId = res.data.createGame.id;
+
+    // join automatisk
+    const joinRes = await joinGame({ gameId, name });
+    const myPlayer = joinRes?.data?.joinGame?.players?.find((p: any) => p.name === name);
+    if (myPlayer) {
+      localStorage.setItem("myPlayerId", myPlayer.id);
+    }
+
+    if (joinRes?.data?.joinGame) {
+      sessionStorage.setItem("latestGame", JSON.stringify(joinRes.data.joinGame));
+      router.push(`/game/${gameId}`);
+    }
+    await refetch(); // 👈 opdaterer lobby-listen
+  }
+}
+
+async function handleJoinGame(gameId: string) {
+  const name = prompt("Enter your name:");
+  if (!name) return;
+
+  const res = await joinGame({ gameId, name });
+  if (res?.data?.joinGame) {
+    const myPlayer = res.data.joinGame.players.find((p: any) => p.name === name);
+    if (myPlayer) {
+      localStorage.setItem("myPlayerId", myPlayer.id);
+      sessionStorage.setItem("latestGame", JSON.stringify(res.data.joinGame));
+
+      // ✅ Navigér først til spillet
+      router.push(`/game/${res.data.joinGame.id}`);
+
+      // 🔁 Reload bagefter, så Apollo fanger headeren
+      setTimeout(() => window.location.reload(), 500);
+    }
+  }
+}
+</script>
+
+<template>
+  <div>
+    <h2>🎮 UNO Lobby</h2>
+
+    <button @click="handleCreateGame">➕ Create Game</button>
+
+    <div v-if="loading">⏳ Loading games...</div>
+    <div v-else-if="error">❌ Error: {{ error.message }}</div>
+
+    <ul v-else>
+      <li v-for="game in result?.games" :key="game.id">
+        Game {{ game.id }} ({{ game.players.length }} players)
+        <button @click="handleJoinGame(game.id)">Join</button>
+      </li>
+    </ul>
+  </div>
+</template>

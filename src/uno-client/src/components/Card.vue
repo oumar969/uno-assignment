@@ -5,7 +5,7 @@ const props = defineProps<{
   color: string | null;
   type: string | null;
   value?: number | null;
-  back?: boolean; // 👈 ekstra prop til bagsidekort
+  back?: boolean; 
 }>();
 
 const imageUrl = computed(() => {
@@ -56,7 +56,7 @@ function getCardImage(
     case "wilddrawfour":
     case "wild_draw4":
     case "+4":
-      return `Wild_DrawFour.png`; // ✅ korrekt navn
+      return `Wild_DrawFour.png`; 
     default:
       return "Deck.png";
   }

@@ -1,20 +1,25 @@
 import { createApp, h, provide } from "vue";
+import { createPinia } from "pinia";
 import App from "./App.vue";
 import { router } from "./router";
-import {
-  ApolloClient,
-  InMemoryCache,
-  createHttpLink,
-} from "@apollo/client/core";
+import { ApolloClient, InMemoryCache, split, HttpLink } from "@apollo/client/core";
 import { DefaultApolloClient } from "@vue/apollo-composable";
+import { getMainDefinition } from "@apollo/client/utilities";
+import { createClient } from "graphql-ws";
+import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
 import { setContext } from "@apollo/client/link/context";
 
-// 🔗 GraphQL endpoint
-const httpLink = createHttpLink({
-  uri: "http://localhost:4000/graphql",
-});
+// HTTP link (for queries & mutations)
+const httpLink = new HttpLink({ uri: "http://localhost:4000/graphql" });
 
-// 🧠 Dynamisk authLink – henter playerId hver gang der sendes en request
+// WebSocket link (for subscriptions)
+const wsLink = new GraphQLWsLink(
+  createClient({
+    url: "ws://localhost:4000/graphql",
+  })
+);
+
+// Auth header
 const authLink = setContext((_, { headers }) => {
   const playerId = localStorage.getItem("myPlayerId");
   return {
@@ -25,24 +30,22 @@ const authLink = setContext((_, { headers }) => {
   };
 });
 
-// ⚙️ Apollo Client setup
+// Split mellem query/mutation og subscription
+const link = split(
+  ({ query }) => {
+    const def = getMainDefinition(query);
+    return def.kind === "OperationDefinition" && def.operation === "subscription";
+  },
+  wsLink,
+  authLink.concat(httpLink)
+);
+
 const apolloClient = new ApolloClient({
-  link: authLink.concat(httpLink),
-  cache: new InMemoryCache({
-    typePolicies: {
-      Query: {
-        fields: {
-          game: {
-            keyArgs: ["id"],
-            merge: false, // så vi ikke cacher gamle spil
-          },
-        },
-      },
-    },
-  }),
+  link,
+  cache: new InMemoryCache(),
 });
 
-// 🚀 Mount app
+// Vue setup
 const app = createApp({
   setup() {
     provide(DefaultApolloClient, apolloClient);
@@ -50,5 +53,6 @@ const app = createApp({
   render: () => h(App),
 });
 
+app.use(createPinia());
 app.use(router);
 app.mount("#app");
