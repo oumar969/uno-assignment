@@ -32,6 +32,12 @@ export class Round {
     const topCard = this.discardPile[this.discardPile.length - 1];
     return topCard ?? null;
   }
+  //not must 
+  checkUno(player: PlayerHand): void {
+    if (player.getCardCount() === 1) {
+      console.log("UNO! 🎉");
+    }
+  }
 
   playTurn(): void {
     const player = this.players[this.currentPlayerIndex];
@@ -56,7 +62,19 @@ export class Round {
       this.nextPlayer();
     }
   }
+ nextTurn(): void {
+    this.currentPlayerIndex =
+      (this.currentPlayerIndex + this.direction + this.players.length) %
+      this.players.length;
+  }
 
+  getCurrentPlayer() {
+    return this.players[this.currentPlayerIndex];
+  }
+
+  reverseDirection(): void {
+    this.direction *= -1;
+  }
   private handleSpecialCard(card: Card): void {
     switch (card.type) {
       case CardType.Skip:
@@ -124,8 +142,8 @@ private forceDraw(count: number): void {
 
 private chooseRandomColor(card: WildCard): void {
   const colors: string[] = ['red', 'blue', 'green', 'yellow'];
-const chosen = colors[Math.floor(Math.random() * colors.length)]!;
-  card.color = chosen;
+  const chosen = colors[Math.floor(Math.random() * colors.length)]!;
+  (card as any).color = chosen;
   console.log(`🎨 Wild color chosen: ${chosen}`);
 }
 }

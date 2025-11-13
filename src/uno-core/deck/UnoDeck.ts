@@ -1,11 +1,12 @@
-// src/deck/Deck.ts
-import { Card } from '../cards/Card';
-import { NumberCard } from '../cards/NumberCard';
-import { SpecialCard } from '../cards/SpecialCard';
-import { WildCard } from '../cards/WildCard';
-import { CardType } from '../types/CardType';
+import { Card } from "../cards/Card";
+import { NumberCard } from "../cards/NumberCard";
+import { SpecialCard } from "../cards/SpecialCard";
+import { WildCard } from "../cards/WildCard";
+import { CardType } from "../types/CardType";
+import { Color } from "../types/Color";
+import { Deck } from "./Deck";
 
-export class UnoDeck {
+export class UnoDeck implements Deck {
   private cards: Card[] = [];
 
   constructor() {
@@ -14,17 +15,17 @@ export class UnoDeck {
   }
 
   private generateDeck(): void {
-    const colors = ['red', 'yellow', 'green', 'blue'];
+    const colors: Color[] = ["red", "yellow", "green", "blue"];
 
-    // Number cards (0–9, to of each number except 0)
+    // Number cards
     for (const color of colors) {
-      this.cards.push(new NumberCard(color, 0)); // only one zero
+      this.cards.push(new NumberCard(color, 0));
       for (let i = 1; i <= 9; i++) {
         this.cards.push(new NumberCard(color, i));
         this.cards.push(new NumberCard(color, i));
       }
 
-      // Special cards (two of each per color)
+      // Special cards
       for (let i = 0; i < 2; i++) {
         this.cards.push(new SpecialCard(color, CardType.Skip));
         this.cards.push(new SpecialCard(color, CardType.Reverse));
@@ -32,7 +33,7 @@ export class UnoDeck {
       }
     }
 
-    // Wild cards (4 Wild + 4 Wild Draw Four)
+    // Wild cards
     for (let i = 0; i < 4; i++) {
       this.cards.push(new WildCard(CardType.Wild));
       this.cards.push(new WildCard(CardType.WildDrawFour));
@@ -40,7 +41,7 @@ export class UnoDeck {
   }
 
   draw(): Card {
-    if (this.isEmpty()) throw new Error('Deck is empty');
+    if (this.isEmpty()) throw new Error("Deck is empty");
     return this.cards.pop()!;
   }
 

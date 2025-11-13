@@ -20,7 +20,7 @@ type Game {
   id: ID!
   players: [Player!]!
   topCard: Card
-  currentPlayer: Int
+  currentPlayer: Player
   activeColor: String
   winner: String     
 }

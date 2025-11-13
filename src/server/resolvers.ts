@@ -5,6 +5,7 @@ import { Round } from "../uno-core/round/Round";
 import { CardType } from "../uno-core/types/CardType";
 import { Card } from "../uno-core/cards/Card";
 import { pubsub } from "../server/index";
+import { withFilter } from "graphql-subscriptions";
 
 const games: any[] = [];
 
@@ -29,11 +30,10 @@ const resolvers = {
            // game.round.activeColor = null; // 👈 den nuværende farve på bordet
 
       games.push(game);
-      return game;
-      
+      return game;     
     },
 
-    joinGame: (_: any, { gameId, name }: { gameId: string; name: string }, context: any) => {
+  joinGame: (_: any, { gameId, name }: { gameId: string; name: string }, context: any) => {
   const game = games.find((g) => g.id === gameId);
   if (!game) throw new Error("Game not found");
 
@@ -51,15 +51,12 @@ const resolvers = {
     game.players.push(player);
     pubsub.publish("GAME_UPDATED", { gameUpdated: game });
 
-    // 👇 Tilføj dette her!
     // Første spiller der joiner skal starte spillet
     if (game.players.length === 1) {
       game.currentPlayerIndex = 0;
     }
   }
-
   console.log("✅ Player joined:", player.id, "viewer:", viewerId, "game:", gameId);
-
   return game;
 },
 
@@ -114,12 +111,14 @@ const resolvers = {
     pubsub.publish("GAME_UPDATED", { gameUpdated: game });
     return game;
   }
+  
   // 🎨 Håndter farvevalg ved Wild-kort
   if (isWild) {
     if (!chosenColor) {
       throw new Error("You must choose a color for a Wild card!");
     }
     game.round.activeColor = chosenColor;
+      card.color = chosenColor;
     console.log(`🎨 Wild color chosen: ${chosenColor}`);
   } else {
     // Ellers sæt farven til kortets farve
@@ -193,7 +192,10 @@ const resolvers = {
   },
 Subscription: {
   gameUpdated: {
-    subscribe: (_: any, { id }: any) => (pubsub as any).asyncIterator(["GAME_UPDATED"]),
+    subscribe: withFilter(
+      () => (pubsub as any).asyncIterator(["GAME_UPDATED"]),
+      (payload, variables) => payload.gameUpdated.id === variables.id
+    ),
   },
 },
   Game: {
@@ -222,6 +224,7 @@ Subscription: {
   },
 
   Player: {
+  handCount: (player: any) => player.hand.getCards().length,
   hand: (player: any, _: any, context: any) => {
     // Hvis ingen viewerId -> vis alt (dev-mode)
     if (!context?.viewerId) {

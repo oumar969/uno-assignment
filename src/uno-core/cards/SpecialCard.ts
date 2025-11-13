@@ -1,8 +1,9 @@
 import { Card } from './Card';
 import { CardType } from '../types/CardType';
+import { Color } from "../types/Color";
 
 export class SpecialCard extends Card {
-  constructor(public color: string, public type: CardType) {
+  constructor(public readonly color: Color, public readonly type: CardType) {
     super(color, type);
   }
 

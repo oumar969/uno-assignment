@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
 import { useQuery, useMutation } from "@vue/apollo-composable";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import * as api from "../model/api";   
 import Card from "../components/Card.vue"; 
+import { useSubscription } from "@vue/apollo-composable";
+import gql from "graphql-tag";
+
 
 const route = useRoute()
 const gameId = route.params.id as string
@@ -11,6 +14,25 @@ const myPlayerId = localStorage.getItem("myPlayerId")
 const result = ref<any>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
+
+const GAME_UPDATED_SUBSCRIPTION = gql`
+  subscription OnGameUpdated($id: ID!) {
+    gameUpdated(id: $id) {
+      id
+      winner
+      activeColor
+      direction
+      currentPlayer { id name }
+      topCard { color type value }
+      players {
+        id
+        name
+        handCount
+        hand { color type value back }
+      }
+    }
+  }
+`;
 
 onMounted(async () => {
   try {
@@ -21,7 +43,16 @@ onMounted(async () => {
     loading.value = false
   }
 })
+const { result: liveResult } = useSubscription(GAME_UPDATED_SUBSCRIPTION, {
+  id: gameId,
+});
 
+// Opdater automatisk når serveren sender nyt game
+watch(liveResult, (newVal) => {
+  if (newVal?.gameUpdated) {
+    result.value = newVal.gameUpdated;
+  }
+});
 async function playCard(card: any, index: number) {
   const chosenColor =
     card.type === "Wild" || card.type === "WildDrawFour"
@@ -39,7 +70,6 @@ async function drawCard() {
 
 <template>
   <h2>UNO Game</h2>
-
   <div v-if="loading">⏳ Loading game...</div>
   <div v-else-if="error">❌ Error: {{ error }}</div>
 
@@ -52,8 +82,32 @@ async function drawCard() {
       <button @click="$router.push('/')">Tilbage til lobby</button>
     </div>
 
-    <!-- 🔹 Kun vis spillet hvis ingen vinder endnu -->
-    <div v-else>
+    <!-- 🔹 Spillerliste -->
+    <div v-if="result?.players?.length">
+      <p>
+        <strong>Players ({{ result.players.length }}):</strong>
+        <span v-for="player in result.players" :key="player.id">
+          {{ player.name }}<span v-if="player.id === myPlayerId"> (You)</span>,
+        </span>
+      </p>
+
+      <p>
+        <strong>Current Turn:</strong>
+        {{
+          result.players[result.currentPlayer?.id === myPlayerId
+            ? 0
+            : result.currentPlayer?.name
+          ] ?? "Unknown"
+        }}
+      </p>
+
+      <p>
+        <strong>Direction:</strong> {{ result.direction ?? "clockwise" }}
+      </p>
+    </div>
+
+    <!-- 🔹 Spillet -->
+    <div v-if="!result?.winner">
       <p v-if="result?.topCard">
         <strong>Top Card:</strong>
         <Card
