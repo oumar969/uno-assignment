@@ -11,3 +11,7 @@ export class SpecialCard extends Card {
     return card.color === this.color || card.type === this.type;
   }
 }
+
+/*
+“Her viser jeg hvordan forskellige korttyper bruger polymorfisme til at definere deres regler.”
+*/

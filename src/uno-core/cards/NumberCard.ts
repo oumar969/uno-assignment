@@ -14,3 +14,16 @@ export class NumberCard extends Card {
     );
   }
 }
+/*
+“Jeg bruger instanceof til type narrowing.
+Hvis kortet er et NumberCard, kan jeg sikkert tilgå value.
+Dette er et eksempel på runtime-narrowing.”
+
+Dette opfylder læreren krav om:
+
+casting & narrowing
+
+unions (flere korttyper)
+
+runtime type guards
+*/

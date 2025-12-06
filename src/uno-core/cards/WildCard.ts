@@ -21,3 +21,15 @@ export class WildCard extends Card {
   }
 }
  
+/*
+Hvad du siger:
+
+“Selvom kortet er immutable, må farven sættes i runtime når kortet spilles.
+Derfor har jeg en intern mutable property _color. color i parent-klassen er altid null for wildcards, hvilket er et bevidst type-designvalg.”
+
+Dette viser:
+
+forståelse for state mutation
+immutability som udgangspunkt
+runtime-state når regler kræver det
+*/

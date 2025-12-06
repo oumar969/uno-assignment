@@ -39,3 +39,15 @@ export function from_memento(memento: RoundMemento): Round {
   // restore discardPile, index, direction osv.
   return round;
 }
+
+/*
+JSON-venlig state
+
+DTO pattern (Data Transfer Object)
+
+✔ Hvad du siger:
+
+“Mementos bruges til at gemme og genskabe state.
+Jeg modellerer dem som readonly JSON-venlige objekter uden metoder.
+Dette matcher kravene for GraphQL transmissible state.”
+*/

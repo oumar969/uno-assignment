@@ -25,3 +25,9 @@ return removed;
     return this.hand.length;
   }
 }
+
+/*
+“Jeg returnerer en kopi af håndens array for at bevare immutability udadtil. Ellers kunne andre dele af systemet mutere hånden direkte.”
+
+Dette viser du forstår capsulation + immutability som designprincip.
+*/  

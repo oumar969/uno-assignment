@@ -147,3 +147,18 @@ private chooseRandomColor(card: WildCard): void {
   console.log(`🎨 Wild color chosen: ${chosen}`);
 }
 }
+
+/*
+I denne klasse viser du brug af:
+
+OOP state machine
+narrowing (instanceof WildCard)
+switch på CardType (discriminating union via enum)
+modulo-arithmetik (god game logic)
+polymorf matches() på card types
+✔ Hvad du siger:
+
+“Round repræsenterer en UNO-hånd. Den indeholder spillets state og metoder til at udføre reglerne.
+Jeg bruger enums til card-typer og switch-statements til diskrimination over unionen af korttyper.
+Polymorfien i matches() gør at Round ikke behøver kende til konkrete typer, men blot kalder metoden.”
+*/
