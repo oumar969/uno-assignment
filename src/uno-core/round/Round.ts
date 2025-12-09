@@ -24,7 +24,23 @@ export class Round {
         player.addCard(this.drawPile.draw());
       }
     }
-    this.discardPile.push(this.drawPile.draw());
+    
+    // Træk første kort - må IKKE være Wild eller WildDrawFour
+    const tempWildCards: Card[] = [];
+    let firstCard = this.drawPile.draw();
+    
+    while (firstCard.type === CardType.Wild || firstCard.type === CardType.WildDrawFour) {
+      // Gem wild card midlertidigt
+      tempWildCards.push(firstCard);
+      firstCard = this.drawPile.draw();
+    }
+    
+    // Put alle wild cards tilbage i discard pile (de vil blive shufflet tilbage senere hvis nødvendigt)
+    for (const wildCard of tempWildCards) {
+      this.discardPile.push(wildCard);
+    }
+    
+    this.discardPile.push(firstCard);
   }
 
   getTopCard(): Card | null {

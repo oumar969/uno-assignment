@@ -3,7 +3,9 @@ import { useRoute } from "vue-router";
 import { useQuery, useMutation } from "@vue/apollo-composable";
 import { onMounted, ref, watch } from "vue";
 import * as api from "../model/api";   
-import Card from "../components/Card.vue"; 
+import Card from "../components/Card.vue";
+import PlayerHand from "../components/PlayerHand.vue";
+import Modal from "../components/Modal.vue";
 import { useSubscription } from "@vue/apollo-composable";
 import gql from "graphql-tag";
 
@@ -14,6 +16,8 @@ const myPlayerId = localStorage.getItem("myPlayerId")
 const result = ref<any>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
+const showColorPicker = ref(false)
+const pendingCardIndex = ref<number | null>(null)
 
 const GAME_UPDATED_SUBSCRIPTION = gql`
   subscription OnGameUpdated($id: ID!) {
@@ -48,14 +52,14 @@ const { result: liveResult, error: subError, loading: subLoading } = useSubscrip
   GAME_UPDATED_SUBSCRIPTION, 
   { id: gameId },
   {
-    fetchPolicy: "no-cache"  // 👈 Bypass Apollo cache for subscriptions
+    fetchPolicy: "no-cache"  //  Bypass Apollo cache for subscriptions
   }
 );
 
 // Debug subscription - ignorer HTTP fejl da WebSocket virker
 watch(subError, (err) => {
   if (err && !err.message.includes('asyncIterator')) {
-    console.error("❌ Subscription error:", err);
+    console.error(" Subscription error:", err);
   }
 });
 
@@ -65,12 +69,29 @@ watch(liveResult, (newVal, oldVal) => {
     result.value = newVal.gameUpdated;
   }
 });
+
+function handlePlayCard(player: any, index: number) {
+  return () => {
+    const card = player.hand[index]
+    playCard(card, index)
+  }
+}
+
 async function playCard(card: any, index: number) {
-  const chosenColor =
-    card.type === "Wild" || card.type === "WildDrawFour"
-      ? (prompt("Vælg farve (red, blue, green, yellow):") ?? undefined)
-      : undefined
-  result.value = await api.playCard(gameId, myPlayerId!, index, chosenColor)
+  if (card.type === "Wild" || card.type === "WildDrawFour") {
+    pendingCardIndex.value = index
+    showColorPicker.value = true
+  } else {
+    result.value = await api.playCard(gameId, myPlayerId!, index, undefined)
+  }
+}
+
+async function selectColor(color: string) {
+  if (pendingCardIndex.value !== null) {
+    result.value = await api.playCard(gameId, myPlayerId!, pendingCardIndex.value, color)
+  }
+  showColorPicker.value = false
+  pendingCardIndex.value = null
 }
 
 async function drawCard() {
@@ -128,32 +149,62 @@ async function drawCard() {
       <div v-for="player in result.players" :key="player.id">
         <h3>{{ player.name }}'s Hand</h3>
 
-        <div v-if="player.id === myPlayerId" class="hand">
-          <Card
-            v-for="(card, i) in player.hand"
-            :key="i"
-            :color="card.color"
-            :type="card.type"
-            :value="card.value"
-            @click="playCard(card, i)"
-          />
-        </div>
+        <!-- en komponent til spillerens hånd -->
+        <PlayerHand
+          v-if="player.id === myPlayerId"
+          :hand="player.hand"
+          @play-card="(i) => playCard(player.hand[i], i)"
+        />
 
         <div v-else>
-          {{ player.hand.length }} cards
+          {{ player.handCount }} cards
         </div>
       </div>
 
       <button @click="drawCard">Draw Card</button>
     </div>
+
+    <!-- Color Picker Modal -->
+    <Modal v-if="showColorPicker" @close="showColorPicker = false">
+      <template #header>
+        <h3>Vælg farve:</h3>
+      </template>
+      <div class="color-buttons">
+        <button class="color-btn red" @click="selectColor('red')">Red</button>
+        <button class="color-btn blue" @click="selectColor('blue')">Blue</button>
+        <button class="color-btn green" @click="selectColor('green')">Green</button>
+        <button class="color-btn yellow" @click="selectColor('yellow')">Yellow</button>
+      </div>
+    </Modal>
   </div>
 </template>
 
 
 <style scoped>
-.hand {
+.color-buttons {
   display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 1rem;
 }
+
+.color-btn {
+  width: 80px;
+  height: 80px;
+  border: 3px solid #333;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s;
+}
+
+.color-btn:hover {
+  transform: scale(1.1);
+}
+
+.color-btn.red { background: #e74c3c; }
+.color-btn.blue { background: #3498db; }
+.color-btn.green { background: #2ecc71; }
+.color-btn.yellow { background: #f39c12; }
 </style>

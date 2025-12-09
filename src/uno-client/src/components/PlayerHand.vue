@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import Card from "./Card.vue"
 
-defineProps<{ // object props with types
-  hand: { color: string; type: string }[]
-  onPlay?: (card: { color: string; type: string }) => void
-}>() // props definition
+defineProps<{
+  hand: { color: string; type: string; value?: number | null }[]
+}>()
+
+defineEmits<{
+  playCard: [index: number]
+}>()
 </script>
 
 <template>
@@ -14,7 +17,8 @@ defineProps<{ // object props with types
       :key="i"
       :color="card.color"
       :type="card.type"
-      @click="onPlay && onPlay(card)"
+      :value="card.value"
+      @click="$emit('playCard', i)"
     />
   </div>
 </template>

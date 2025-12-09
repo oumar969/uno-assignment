@@ -1,10 +1,15 @@
 <script setup lang="ts">
+import { ref } from "vue";
+import Modal from "../components/Modal.vue";
 import { useQuery, useMutation } from "@vue/apollo-composable";
 import gql from "graphql-tag";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
 
+/* -----------------------------
+   GRAPHQL QUERIES & MUTATIONS
+------------------------------*/
 const GET_GAMES = gql`
   query {
     games {
@@ -37,64 +42,103 @@ const JOIN_GAME = gql`
   }
 `;
 
+/* -----------------------------
+        APOLLO CLIENT
+------------------------------*/
 const { result, loading, error, refetch } = useQuery(GET_GAMES, null, {
   fetchPolicy: "no-cache",
 });
+
 const { mutate: createGame } = useMutation(CREATE_GAME);
 const { mutate: joinGame } = useMutation(JOIN_GAME);
 
-async function handleCreateGame() {
-  const name = prompt("Enter your name:");
-  if (!name) return;
+/* -----------------------------
+       UI STATE (MVVM)
+------------------------------*/
+const showNameModal = ref(false);     // styrer modal
+const playerName = ref("");          // v-model
+const pendingGameId = ref<string | null>(null);
+const isCreating = ref(false);       // om vi laver nyt spil
 
-  const res = await createGame();
-  if (res?.data?.createGame) {
-    const gameId = res.data.createGame.id;
+/* -----------------------------
+        HANDLER FUNCTIONS
+------------------------------*/
 
-    // join automatisk
-    const joinRes = await joinGame({ gameId, name });
-    const myPlayer = joinRes?.data?.joinGame?.players?.find((p: any) => p.name === name);
-    if (myPlayer) {
-      localStorage.setItem("myPlayerId", myPlayer.id);
-    }
-
-    if (joinRes?.data?.joinGame) {
-      sessionStorage.setItem("latestGame", JSON.stringify(joinRes.data.joinGame));
-      router.push(`/game/${gameId}`);
-    }
-    await refetch(); // 👈 opdaterer lobby-listen
-  }
+// Åben modal for CREATE GAME
+function handleCreateGame() {
+  isCreating.value = true;
+  pendingGameId.value = null;
+  showNameModal.value = true;
 }
 
-async function handleJoinGame(gameId: string) {
-  const name = prompt("Enter your name:");
-  if (!name) return;
+// Åben modal for JOIN GAME
+function handleJoinGame(gameId: string) {
+  isCreating.value = false;
+  pendingGameId.value = gameId;
+  showNameModal.value = true;
+}
 
-  const res = await joinGame({ gameId, name });
-  if (res?.data?.joinGame) {
-    const myPlayer = res.data.joinGame.players.find((p: any) => p.name === name);
+// Bekræft navn og udfør mutation
+async function confirmName() {
+  if (!playerName.value) return;
+
+  const name = playerName.value;
+
+  // Hvis spilleren opretter nyt spil
+  if (isCreating.value) {
+    const res = await createGame();
+    const gameId = res?.data?.createGame?.id;
+
+    if (!gameId) return;
+
+    const joinRes = await joinGame({ gameId, name });
+
+    const myPlayer = joinRes?.data?.joinGame?.players?.find(
+      (p: any) => p.name === name
+    );
+
     if (myPlayer) {
       localStorage.setItem("myPlayerId", myPlayer.id);
-      sessionStorage.setItem("latestGame", JSON.stringify(res.data.joinGame));
+    }
 
-      // ✅ Navigér først til spillet
-      router.push(`/game/${res.data.joinGame.id}`);
+    router.push(`/game/${gameId}`);
+  }
 
-      // 🔁 Reload bagefter, så Apollo fanger headeren
+  // Hvis spilleren joiner eksisterende spil
+  else {
+    const gameId = pendingGameId.value!;
+
+    const joinRes = await joinGame({ gameId, name });
+
+    const myPlayer = joinRes?.data?.joinGame.players.find(
+      (p: any) => p.name === name
+    );
+
+    if (myPlayer) {
+      localStorage.setItem("myPlayerId", myPlayer.id);
+      router.push(`/game/${gameId}`);
+
+      // Reload så Apollo fanger headers
       setTimeout(() => window.location.reload(), 500);
     }
   }
+
+  // Nulstil modalens state
+  playerName.value = "";
+  showNameModal.value = false;
+
+  await refetch();
 }
 </script>
 
 <template>
   <div>
-    <h2>🎮 UNO Lobby</h2>
+    <h2>UNO Lobby</h2>
 
-    <button @click="handleCreateGame">➕ Create Game</button>
+    <button @click="handleCreateGame">Create Game</button>
 
-    <div v-if="loading">⏳ Loading games...</div>
-    <div v-else-if="error">❌ Error: {{ error.message }}</div>
+    <div v-if="loading">Loading games...</div>
+    <div v-else-if="error">Error: {{ error.message }}</div>
 
     <ul v-else>
       <li v-for="game in result?.games" :key="game.id">
@@ -102,5 +146,41 @@ async function handleJoinGame(gameId: string) {
         <button @click="handleJoinGame(game.id)">Join</button>
       </li>
     </ul>
+
+    <!-- -------------------------
+          MODAL WITH SLOTS + V-MODEL
+        ------------------------------>
+    <Modal v-if="showNameModal" @close="showNameModal = false">
+      
+      <!-- Header Slot -->
+      <template #header>
+        <h3>Enter your name</h3>
+      </template>
+
+      <!-- Default Slot (body) -->
+      <input
+        v-model="playerName"
+        placeholder="Your name"
+        class="name-input"
+      />
+
+      <!-- Footer Slot -->
+      <template #footer>
+        <button @click="confirmName">OK</button>
+        <button @click="showNameModal = false">Cancel</button>
+      </template>
+
+    </Modal>
   </div>
 </template>
+
+<style scoped>
+.name-input {
+  width: 100%;
+  padding: 8px;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: 1px solid #444;
+  margin-bottom: 10px;
+}
+</style>

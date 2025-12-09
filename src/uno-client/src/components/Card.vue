@@ -33,10 +33,22 @@ function getCardImage(
   type: string | null,
   value?: number | null
 ) {
-  if (!color || !type) return "Deck.png";
+  if (!type) return "Deck.png";
+
+  const t = type.toLowerCase();
+
+  // Wild cards har ingen farve
+  if (t === "wild") {
+    return `Wild.png`;
+  }
+  if (t === "wilddrawfour") {
+    return `Wild_Draw.png`;
+  }
+
+  // Alle andre kort kræver farve
+  if (!color) return "Deck.png";
 
   const c = color.charAt(0).toUpperCase() + color.slice(1).toLowerCase();
-  const t = type.toLowerCase();
 
   if (t === "number" && value !== undefined && value !== null) {
     return `${c}_${value}.png`;
@@ -51,12 +63,6 @@ function getCardImage(
     case "draw2":
     case "+2":
       return `${c}_Draw.png`;
-    case "wild":
-      return `Wild.png`;
-    case "wilddrawfour":
-    case "wild_draw4":
-    case "+4":
-      return `Wild_DrawFour.png`; 
     default:
       return "Deck.png";
   }
