@@ -1,0 +1,1 @@
+{"version":3,"file":"NumberCard.d.ts","sourceRoot":"","sources":["../../../src/uno-core/cards/NumberCard.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AAE9B,OAAO,EAAE,KAAK,EAAE,MAAM,gBAAgB,CAAC;AAEvC,qBAAa,UAAW,SAAQ,IAAI;aACN,KAAK,EAAE,KAAK;aAAkB,KAAK,EAAE,MAAM;gBAA3C,KAAK,EAAE,KAAK,EAAkB,KAAK,EAAE,MAAM;IAIvE,OAAO,CAAC,IAAI,EAAE,IAAI,GAAG,OAAO;CAM7B"}

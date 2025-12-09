@@ -43,12 +43,24 @@ onMounted(async () => {
     loading.value = false
   }
 })
-const { result: liveResult } = useSubscription(GAME_UPDATED_SUBSCRIPTION, {
-  id: gameId,
+
+const { result: liveResult, error: subError, loading: subLoading } = useSubscription(
+  GAME_UPDATED_SUBSCRIPTION, 
+  { id: gameId },
+  {
+    fetchPolicy: "no-cache"  // 👈 Bypass Apollo cache for subscriptions
+  }
+);
+
+// Debug subscription - ignorer HTTP fejl da WebSocket virker
+watch(subError, (err) => {
+  if (err && !err.message.includes('asyncIterator')) {
+    console.error("❌ Subscription error:", err);
+  }
 });
 
 // Opdater automatisk når serveren sender nyt game
-watch(liveResult, (newVal) => {
+watch(liveResult, (newVal, oldVal) => {
   if (newVal?.gameUpdated) {
     result.value = newVal.gameUpdated;
   }
@@ -70,15 +82,15 @@ async function drawCard() {
 
 <template>
   <h2>UNO Game</h2>
-  <div v-if="loading">⏳ Loading game...</div>
-  <div v-else-if="error">❌ Error: {{ error }}</div>
+  <div v-if="loading"> Loading game...</div>
+  <div v-else-if="error"> Error: {{ error }}</div>
 
   <div v-else>
     <h3>Game ID: {{ result?.id }}</h3>
 
-    <!-- 🎉 Vinder besked -->
+    <!--  Vinder besked -->
     <div v-if="result?.winner">
-      <h2>🎉 {{ result.winner }} vandt spillet! 🎉</h2>
+      <h2> {{ result.winner }} vandt spillet! </h2>
       <button @click="$router.push('/')">Tilbage til lobby</button>
     </div>
 
@@ -93,16 +105,7 @@ async function drawCard() {
 
       <p>
         <strong>Current Turn:</strong>
-        {{
-          result.players[result.currentPlayer?.id === myPlayerId
-            ? 0
-            : result.currentPlayer?.name
-          ] ?? "Unknown"
-        }}
-      </p>
-
-      <p>
-        <strong>Direction:</strong> {{ result.direction ?? "clockwise" }}
+        {{ result.currentPlayer?.name ?? "Unknown" }}
       </p>
     </div>
 
@@ -120,7 +123,6 @@ async function drawCard() {
       <p v-if="result?.activeColor">
         <strong>Active color:</strong> {{ result.activeColor }}
       </p>
-      <p v-else>No top card yet</p>
 
       <h3>Players:</h3>
       <div v-for="player in result.players" :key="player.id">
@@ -151,6 +153,7 @@ async function drawCard() {
 <style scoped>
 .hand {
   display: flex;
+  gap: 10px;
   flex-wrap: wrap;
 }
 </style>

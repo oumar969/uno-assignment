@@ -1,7 +1,7 @@
 import { gql } from "@apollo/client/core"
 import { apolloClient } from "./apollo"
 
-// 🎮 Hent alle aktive spil
+//  Hent alle aktive spil
 export async function games() {
   const query = gql`
     query {
@@ -14,7 +14,7 @@ export async function games() {
   return result.data.games
 }
 
-// 🆕 Opret et nyt spil
+//  Opret et nyt spil
 export async function createGame() {
   const mutation = gql`
     mutation {
@@ -24,7 +24,7 @@ export async function createGame() {
   return result.data.createGame
 }
 
-// 👥 Join et spil
+//  Join et spil
 export async function joinGame(gameId: string, name: string) {
   const mutation = gql`
     mutation JoinGame($gameId: ID!, $name: String!) {
@@ -37,7 +37,7 @@ export async function joinGame(gameId: string, name: string) {
   return result.data.joinGame
 }
 
-// 🃏 Hent ét spil med kort og spillere
+//  Hent ét spil med kort og spillere
 export async function game(id: string) {
   const query = gql`
     query ($id: ID!) {
@@ -55,7 +55,7 @@ export async function game(id: string) {
   return result.data.game
 }
 
-// 🂠 Spil et kort
+//  Spil et kort
 export async function playCard(gameId: string, playerId: string, cardIndex: number, chosenColor?: string) {
   const mutation = gql`
     mutation PlayCard($gameId: ID!, $playerId: ID!, $cardIndex: Int!, $chosenColor: String) {
@@ -76,7 +76,7 @@ export async function playCard(gameId: string, playerId: string, cardIndex: numb
   return result.data.playCard
 }
 
-// 🃍 Træk et kort
+//  Træk et kort
 export async function drawCard(gameId: string, playerId: string) {
   const mutation = gql`
     mutation DrawCard($gameId: ID!, $playerId: ID!) {

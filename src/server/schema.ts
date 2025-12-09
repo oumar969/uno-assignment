@@ -5,6 +5,7 @@ export const typeDefs = gql`
     color: String
     type: String
     value: Int
+    back: Boolean
   }
 
  type Player {
@@ -22,7 +23,9 @@ type Game {
   topCard: Card
   currentPlayer: Player
   activeColor: String
-  winner: String     
+  winner: String
+  direction: Int
+  handCount: Int
 }
     
   type Query {

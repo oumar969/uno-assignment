@@ -4,8 +4,8 @@ import { PlayerHand } from "../uno-core/player/PlayerHand";
 import { Round } from "../uno-core/round/Round";
 import { CardType } from "../uno-core/types/CardType";
 import { Card } from "../uno-core/cards/Card";
-import { pubsub } from "../server/index";
-import { withFilter } from "graphql-subscriptions";
+import { gameEvents } from "./index";
+import { Readable } from "stream";
 
 const games: any[] = [];
 
@@ -24,8 +24,8 @@ const resolvers = {
         id,
         players: [],
         round,
-        currentPlayerIndex: 0, // 🔹 første spiller starter
-        direction: 1, // 🔹 1 = med uret, -1 = mod uret
+        currentPlayerIndex: 0, // første spiller starter
+        direction: 1, 
       };
            // game.round.activeColor = null; // 👈 den nuværende farve på bordet
 
@@ -49,14 +49,13 @@ const resolvers = {
     }
 
     game.players.push(player);
-    pubsub.publish("GAME_UPDATED", { gameUpdated: game });
+    gameEvents.emit("GAME_UPDATED", { gameId: game.id, game });
 
     // Første spiller der joiner skal starte spillet
     if (game.players.length === 1) {
       game.currentPlayerIndex = 0;
     }
   }
-  console.log("✅ Player joined:", player.id, "viewer:", viewerId, "game:", gameId);
   return game;
 },
 
@@ -67,7 +66,7 @@ const resolvers = {
   const player = game.players.find((p: any) => p.id === playerId);
   if (!player) throw new Error("Player not found");
 
-  // 🚫 Kun den spiller der har tur må spille
+  //  Kun den spiller der har tur må spille
   const currentPlayer = game.players[game.currentPlayerIndex];
   if (player.id !== currentPlayer.id) {
     throw new Error("Not your turn!");
@@ -100,70 +99,63 @@ const resolvers = {
     );
   }
 
-  // ✅ Spil kortet
+  //  Spil kortet
   player.hand.playCard(cardIndex);
   discard.push(card);
     
-  // 🏁 TJEK FOR VINDER
+  //  TJEK FOR VINDER
   if (player.hand.getCards().length === 0) {
     game.winner = player.name; // 👈 Tilføj winner-feltet
-    console.log(`🎉 ${player.name} vandt spillet!`);
-    pubsub.publish("GAME_UPDATED", { gameUpdated: game });
+    gameEvents.emit("GAME_UPDATED", { gameId: game.id, game });
     return game;
   }
   
-  // 🎨 Håndter farvevalg ved Wild-kort
+  //  Håndter farvevalg ved Wild-kort
   if (isWild) {
     if (!chosenColor) {
       throw new Error("You must choose a color for a Wild card!");
     }
     game.round.activeColor = chosenColor;
       card.color = chosenColor;
-    console.log(`🎨 Wild color chosen: ${chosenColor}`);
   } else {
     // Ellers sæt farven til kortets farve
     game.round.activeColor = card.color;
   }
 
-  // 🔁 Håndter specialkort
+  //  Håndter specialkort
   if (cardType === "Reverse") {
     game.direction *= -1; // skift retning
-  }
-
-  if (cardType === "Skip") {
-    // spring næste spiller over
+    // Reverse giver IKKE ekstra tur-skip - turen går som normal til næste i NEW retning
+  } else if (cardType === "Skip") {
+    // spring næste spiller over - skift tur 2x
     game.currentPlayerIndex =
       (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
-  }
-
-  if (cardType === "DrawTwo") {
-    // næste spiller trækker 2 kort
+  } else if (cardType === "DrawTwo") {
+    // næste spiller trækker 2 kort OG mister sin tur
     const nextIndex =
       (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
     const nextPlayer = game.players[nextIndex];
     nextPlayer.hand.addCard(game.round.drawPile.draw());
     nextPlayer.hand.addCard(game.round.drawPile.draw());
-    console.log(`➕2! ${nextPlayer.name} trækker 2 kort`);
-  }
-
-  if (cardType === "WildDrawFour") {
-    // næste spiller trækker 4 kort
+    // Skip næste spillers tur
+    game.currentPlayerIndex =
+      (nextIndex + game.direction + game.players.length) % game.players.length;
+  } else if (cardType === "WildDrawFour") {
+    // næste spiller trækker 4 kort OG mister sin tur
     const nextIndex =
       (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
     const nextPlayer = game.players[nextIndex];
     for (let i = 0; i < 4; i++) nextPlayer.hand.addCard(game.round.drawPile.draw());
-    console.log(`🌈➕4! ${nextPlayer.name} trækker 4 kort`);
-    pubsub.publish("GAME_UPDATED", { gameUpdated: game });
+    // Skip næste spillers tur
+    game.currentPlayerIndex =
+      (nextIndex + game.direction + game.players.length) % game.players.length;
   }
 
-  // 🔄 Skift tur
+  //  Skift tur til næste spiller (efter special cards handled)
   game.currentPlayerIndex =
     (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
 
-  console.log(
-    `➡️ Next turn: ${game.players[game.currentPlayerIndex].name} (${game.players[game.currentPlayerIndex].id})`
-  );
-
+  gameEvents.emit("GAME_UPDATED", { gameId: game.id, game });
   return game;
 },
 
@@ -174,28 +166,61 @@ const resolvers = {
       const player = game.players.find((p: any) => p.id === playerId);
       if (!player) throw new Error("Player not found");
 
-      // ✅ kun hvis det er spillerens tur
+      //  kun hvis det er spillerens tur
       const currentPlayer = game.players[game.currentPlayerIndex];
       if (player.id !== currentPlayer.id) {
         throw new Error("Not your turn!");
       }
 
       player.hand.addCard(game.round.drawPile.draw());
-      pubsub.publish("GAME_UPDATED", { gameUpdated: game });
+      console.log(` ${player.name} tegner 1 kort`);
 
       // Efter træk → næste tur
       game.currentPlayerIndex =
         (game.currentPlayerIndex + game.direction + game.players.length) % game.players.length;
+
+      gameEvents.emit("GAME_UPDATED", { gameId: game.id, game });
 
       return game;
     },
   },
 Subscription: {
   gameUpdated: {
-    subscribe: withFilter(
-      () => (pubsub as any).asyncIterator(["GAME_UPDATED"]),
-      (payload, variables) => payload.gameUpdated.id === variables.id
-    ),
+    subscribe: async function* (_: any, { id }: any) {
+      
+      // Keep yielding updates as they come in
+      let handler = (data: any) => {
+        if (data.gameId === id) {
+        }
+      };
+
+      // Create a promise that resolves when event arrives
+      while (true) {
+        const update = await new Promise<any>((resolve) => {
+          const listener = (data: any) => {
+            if (data.gameId === id) {
+              console.log(" Emitting update for game:", id);
+              resolve(data);
+              gameEvents.off("GAME_UPDATED", listener);
+            }
+          };
+          
+          gameEvents.on("GAME_UPDATED", listener);
+          
+          // Cleanup after 5 minutes
+          const timeout = setTimeout(() => {
+            gameEvents.off("GAME_UPDATED", listener);
+          }, 300000);
+        });
+
+        if (update) {
+          yield { gameId: update.gameId, game: update.game };
+        }
+      }
+    },
+    resolve: (payload: any) => {
+      return payload?.game || null;
+    },
   },
 },
   Game: {
@@ -213,6 +238,8 @@ Subscription: {
   },
 
   activeColor: (game: any) => game.round.activeColor || null, 
+
+  direction: (game: any) => game.direction || 1,
 
     // 🔹 viser hvem der har tur
     currentPlayer: (game: any) => {

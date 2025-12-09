@@ -1,41 +1,88 @@
 import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
+import { expressMiddleware } from "@apollo/server/express4";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { createServer } from "http";
 import { WebSocketServer } from "ws";
-import { useServer } from "graphql-ws/use/ws";
+import { useServer } from "graphql-ws/lib/use/ws";
 import { typeDefs } from "./schema";
 import resolvers from "./resolvers";
-import { PubSub } from "graphql-subscriptions";
+import { EventEmitter } from "events";
+import express from "express";
+import cors from "cors";
 
-export const pubsub = new PubSub();
+/*EventEmitter (server data)
+        ↓
+GraphQL Subscriptions (protocol)
+        ↓
+WebSocket (transport)
+        ↓
+Apollo Client (client)*/
+
+// Use EventEmitter instead of graphql-subscriptions PubSub
+export const gameEvents = new EventEmitter();
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
-// ---- HTTP + WS share same port ----
-const httpServer = createServer();
+const app = express();
+const httpServer = createServer(app);
+
+// WebSocket server for subscriptions
 const wsServer = new WebSocketServer({
   server: httpServer,
   path: "/graphql",
 });
 
 // GraphQL over WebSocket
-useServer({ schema }, wsServer);
+const serverCleanup = useServer(
+  {
+    schema,
+    onConnect: async (ctx: any) => {
+      return true;
+    },
+    context: async () => {
+      return { gameEvents };
+    },
+  },
+  wsServer
+);
 
-// ---- HTTP Apollo server ----
-const server = new ApolloServer({ schema });
+// Apollo Server
+const server = new ApolloServer({
+  schema,
+  plugins: [
+    ApolloServerPluginDrainHttpServer({ httpServer }),
+    {
+      async serverWillStart() {
+        return {
+          async drainServer() {
+            await serverCleanup.dispose();
+          },
+        };
+      },
+    },
+  ],
+});
 
 async function start() {
-  const { url } = await startStandaloneServer(server, {
-    listen: { port: 4000 },
-    context: async ({ req }) => {
-      const viewerId = req?.headers["x-player-id"] || null;
-      return { viewerId, pubsub };
-    },
-  });
+  await server.start();
 
-  console.log(`🚀 Server running at: ${url}`);
-  console.log(`🔗 Subscriptions at: ws://localhost:4000/graphql`);
+  app.use(
+    "/graphql",
+    cors<cors.CorsRequest>(),
+    express.json(),
+    expressMiddleware(server, {
+      context: async ({ req }: any) => {
+        const viewerId = req?.headers["x-player-id"] || null;
+        return { viewerId, gameEvents };
+      },
+    })
+  );
+
+  const PORT = 4000;
+  httpServer.listen(PORT, () => {
+    console.log(` Server running at: http://localhost:${PORT}/graphql`);
+  });
 }
 
 start().catch((err) => {
