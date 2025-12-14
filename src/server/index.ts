@@ -10,7 +10,14 @@ import resolvers from "./resolvers";
 import { EventEmitter } from "events";
 import express from "express";
 import cors from "cors";
-
+import { MemoryGameStore } from "./MemoryGameStore";
+import { gameEvents } from "./context";
+/*
+Real-time opdateringer håndteres via:
+EventEmitter på serversiden
+GraphQL Subscriptions over WebSocket
+ServerModel udsender events → klienter opdateres automatisk.
+*/
 /*EventEmitter (server data)
         ↓
 GraphQL Subscriptions (protocol)
@@ -20,7 +27,7 @@ WebSocket (transport)
 Apollo Client (client)*/
 
 // Use EventEmitter instead of graphql-subscriptions PubSub
-export const gameEvents = new EventEmitter();
+
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -40,8 +47,10 @@ const serverCleanup = useServer(
     onConnect: async (ctx: any) => {
       return true;
     },
-    context: async () => {
-      return { gameEvents };
+    context: async (ctx: any) => {
+      // Extract viewerId from connection params
+      const viewerId = ctx.connectionParams?.["x-player-id"] || null;
+      return { gameEvents, viewerId };
     },
   },
   wsServer
@@ -74,7 +83,7 @@ async function start() {
     expressMiddleware(server, {
       context: async ({ req }: any) => {
         const viewerId = req?.headers["x-player-id"] || null;
-        return { viewerId, gameEvents };
+        return { viewerId };
       },
     })
   );
