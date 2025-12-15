@@ -1,3 +1,9 @@
+/*
+gameStore.ts
+Central store for game state and actions
+bruges til at håndtere spillets tilstand og interaktioner
+*/
+
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { GameService } from "../model/GameService";

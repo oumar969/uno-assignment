@@ -1,3 +1,8 @@
+/*
+pending_games_store.ts 
+Store for pending UNO games (lobbies)
+bruges til at holde styr på spil, der er oprettet men ikke startet
+*/
 import { computed, reactive, type Reactive } from 'vue'
 import { defineStore } from 'pinia'
 import type { UnoGameSpecs } from '@/model/game' // UNO pending game type

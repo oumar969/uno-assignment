@@ -92,3 +92,11 @@ export async function drawCard(gameId: string, playerId: string) {
   const result = await apolloClient.mutate({ mutation, variables: { gameId, playerId } })
   return result.data.drawCard
 }
+
+export function join(value: UnoGameSpecs, player: string) {
+    throw new Error('Function not implemented.')
+}
+export function pending_games() {
+  throw new Error('Function not implemented.')
+}
+

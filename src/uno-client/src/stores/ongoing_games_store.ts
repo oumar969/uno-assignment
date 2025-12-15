@@ -1,3 +1,9 @@
+/*
+ongoing_games_store.ts
+Store for ongoing UNO games (active games)
+bruges til at holde styr på spil, der er i gang 
+*/
+
 import { computed, reactive, type Reactive } from 'vue'
 import { defineStore } from 'pinia'
 import type { UnoGame } from '@/model/game' // din UNO-game type fra model
