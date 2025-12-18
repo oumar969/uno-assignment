@@ -28,7 +28,9 @@ onMounted(async () => {
   games?.forEach((g: any) => ongoingGamesStore.upsert(g))
 
   const pending_games = await api.pending_games()
-  pending_games?.forEach((g: any) => pendingGamesStore.upsert(g))
+  if (Array.isArray(pending_games)) {
+    pending_games.forEach((g: any) => pendingGamesStore.upsert(g))
+  }
 
   // Setup WebSocket for real-time updates (optional)
   try {

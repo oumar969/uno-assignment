@@ -6,7 +6,7 @@ bruges til at håndtere spillets tilstand og interaktioner
 
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { GameService } from "../model/GameService";
+import { GameService } from "../model/GameService(ZOD)";
 
 export const useGameStore = defineStore("game", () => {
   const service = new GameService(); 
