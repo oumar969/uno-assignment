@@ -178,3 +178,18 @@ polymorf matches() på card types
 Jeg bruger enums til card-typer og switch-statements til diskrimination over unionen af korttyper.
 Polymorfien i matches() gør at Round ikke behøver kende til konkrete typer, men blot kalder metoden.”
 */
+
+/*
+WHAT TO TALK ABOUT (EXAM):
+
+- State machine
+- Game logic orchestration
+- Discriminated union via CardType enum
+- Narrowing with switch(card.type)
+- Polymorphism via matches()
+- Modulo arithmetic for turn handling
+
+What I say:
+“Round represents a single UNO hand and contains the game rules.
+I use discriminated unions, narrowing, and polymorphism to handle card behavior.”
+*/

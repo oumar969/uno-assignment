@@ -25,3 +25,17 @@ Unions (Color | null)
 Polymorfi
 abstrakte metoder
 */
+
+/*
+WHAT TO TALK ABOUT (EXAM):
+
+- Object-Oriented Programming: abstract base class
+- Encapsulation: Card defines shared structure for all cards
+- Immutability: readonly properties prevent accidental mutation
+- Union types: Color | null models wild cards correctly
+- Polymorphism: matches() is abstract and implemented by subclasses
+
+What I say:
+“Card is an abstract base class that defines shared state and behavior.
+I use readonly for immutability and an abstract method to enable polymorphism.”
+*/

@@ -31,3 +31,16 @@ return removed;
 
 Dette viser du forstår capsulation + immutability som designprincip.
 */  
+
+/*
+WHAT TO TALK ABOUT (EXAM):
+
+- Encapsulation
+- Defensive copying to preserve immutability
+- Single responsibility
+- Polymorphic use of matches()
+
+What I say:
+“PlayerHand encapsulates a player’s cards and protects internal state
+by returning copies instead of the original array.”
+*/

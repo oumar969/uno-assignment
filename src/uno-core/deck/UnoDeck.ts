@@ -57,3 +57,18 @@ export class UnoDeck implements Deck {
     return this.cards.length === 0;
   }
 }
+
+
+/*
+WHAT TO TALK ABOUT (EXAM):
+
+- Interface implementation
+- Encapsulation of mutable state
+- Array operations
+- Error handling
+- Real-world modeling (physical deck of cards)
+
+What I say:
+“UnoDeck implements Deck and manages a mutable card pile.
+Mutation is acceptable here because it models a real deck.”
+*/

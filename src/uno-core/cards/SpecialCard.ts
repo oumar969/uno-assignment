@@ -14,4 +14,16 @@ export class SpecialCard extends Card {
 
 /*
 “Her viser jeg hvordan forskellige korttyper bruger polymorfisme til at definere deres regler.”
+*/ 
+
+/*
+WHAT TO TALK ABOUT (EXAM):
+
+- Inheritance and reuse
+- Polymorphism: same method, different behavior
+- Avoiding code duplication (DRY principle)
+
+What I say:
+“SpecialCard groups common logic for colored special cards.
+Each card type defines its own matching behavior.”
 */

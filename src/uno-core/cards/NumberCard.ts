@@ -15,15 +15,22 @@ export class NumberCard extends Card {
   }
 }
 /*
-“Jeg bruger instanceof til type narrowing.
-Hvis kortet er et NumberCard, kan jeg sikkert tilgå value.
-Dette er et eksempel på runtime-narrowing.”
+extends
+readonly
+super
+narrowing by instanceof 
+*/
 
-Dette opfylder læreren krav om:
+/*
+WHAT TO TALK ABOUT (EXAM):
 
-casting & narrowing
+- Inheritance: extends Card
+- super(): calling parent constructor
+- readonly properties for immutability
+- Narrowing with instanceof (runtime type guard)
+- Polymorphism: custom matches() logic
 
-unions (flere korttyper)
-
-runtime type guards
+What I say:
+“NumberCard extends Card and uses instanceof for runtime narrowing.
+This allows safe access to value and demonstrates polymorphism.”
 */

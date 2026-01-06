@@ -10,3 +10,16 @@ export interface Game {
   to_memento(): GameMemento;
   clone(): Game;
 }
+
+
+/*
+WHAT TO TALK ABOUT (EXAM):
+
+- High-level abstraction
+- Separation of concerns
+- Planning for scalability
+- Save/load functionality
+
+What I say:
+“Game represents a full UNO game with multiple rounds and persistence support.”
+*/

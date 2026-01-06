@@ -51,3 +51,17 @@ DTO pattern (Data Transfer Object)
 Jeg modellerer dem som readonly JSON-venlige objekter uden metoder.
 Dette matcher kravene for GraphQL transmissible state.”
 */
+
+/*
+WHAT TO TALK ABOUT (EXAM):
+
+- Memento pattern
+- DTO (Data Transfer Object)
+- JSON-serializable state
+- Immutability with readonly
+- Server–client communication (GraphQL)
+
+What I say:
+“Mementos store immutable snapshots of game state
+that can be saved, sent over HTTP, or restored.”
+*/

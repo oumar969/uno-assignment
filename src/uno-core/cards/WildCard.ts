@@ -33,3 +33,16 @@ forståelse for state mutation
 immutability som udgangspunkt
 runtime-state når regler kræver det
 */
+
+/*
+WHAT TO TALK ABOUT (EXAM):
+
+- Controlled mutation vs immutability
+- Runtime state vs initial state
+- Why color is null in base Card
+- Encapsulation using private fields
+
+What I say:
+“Wild cards are immutable by default, but require controlled mutation
+when a color is chosen at runtime. This models the game rules correctly.”
+*/
