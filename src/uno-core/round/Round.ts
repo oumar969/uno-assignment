@@ -91,6 +91,8 @@ export class Round {
   reverseDirection(): void {
     this.direction *= -1;
   }
+
+
   private handleSpecialCard(card: Card): void {
     switch (card.type) {
       case CardType.Skip:
@@ -143,7 +145,7 @@ export class Round {
       (this.currentPlayerIndex + this.direction + this.players.length) %
       this.players.length;
   }
-private forceDraw(count: number): void {
+  private forceDraw(count: number): void {
   const nextIndex =
     (this.currentPlayerIndex + this.direction + this.players.length) %
     this.players.length;

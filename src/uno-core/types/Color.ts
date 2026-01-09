@@ -1,6 +1,10 @@
 export const Colors = ["red", "yellow", "green", "blue"] as const;
 export type Color = typeof Colors[number];
 
+
+
+
+
 /* 
 her definerer jeg en union type Color, som kan være en af de fire farver i UNO spillet.
 Dette opfylder kravene om: 

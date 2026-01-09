@@ -2,7 +2,10 @@ import { Card } from './Card';
 import { CardType } from '../types/CardType';
 import { Color } from "../types/Color";
 
+//export type SpecialCardType = CardType.Skip | CardType.Reverse | CardType.DrawTwo;
+
 export class SpecialCard extends Card {
+  //  constructor(public readonly color: Color, public readonly type: SpecialCardType) {
   constructor(public readonly color: Color, public readonly type: CardType) {
     super(color, type);
   }

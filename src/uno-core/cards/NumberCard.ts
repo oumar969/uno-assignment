@@ -3,6 +3,8 @@ import { CardType } from '../types/CardType';
 import { Color } from "../types/Color";
 
 export class NumberCard extends Card {
+  //public readonly type: CardType.Number = CardType.Number;
+
   constructor(public readonly color: Color, public readonly value: number) {
     super(color, CardType.Number);
   }
@@ -14,11 +16,16 @@ export class NumberCard extends Card {
     );
   }
 }
+
+
 /*
 extends
+overriding matches
+- Polymorphism: custom matches() logic
 readonly
 super
-narrowing by instanceof 
+narrowing by instanceof : accessing value safely
+Casting & Narrowing
 */
 
 /*
@@ -28,7 +35,7 @@ WHAT TO TALK ABOUT (EXAM):
 - super(): calling parent constructor
 - readonly properties for immutability
 - Narrowing with instanceof (runtime type guard)
-- Polymorphism: custom matches() logic
+
 
 What I say:
 “NumberCard extends Card and uses instanceof for runtime narrowing.
