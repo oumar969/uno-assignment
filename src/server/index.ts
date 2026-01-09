@@ -1,16 +1,14 @@
-import { ApolloServer } from "@apollo/server";
+import express from "express";
 import { expressMiddleware } from "@apollo/server/express4";
-import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
-import { makeExecutableSchema } from "@graphql-tools/schema";
-import { createServer } from "http";
 import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
+import { createServer } from "http";
+import { ApolloServer } from "@apollo/server";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+import { makeExecutableSchema } from "@graphql-tools/schema";
 import { typeDefs } from "./schema";
 import resolvers from "./resolvers";
-import { EventEmitter } from "events";
-import express from "express";
 import cors from "cors";
-import { MemoryGameStore } from "./MemoryGameStore";
 import { gameEvents } from "./context";
 /*
 Real-time opdateringer håndteres via:

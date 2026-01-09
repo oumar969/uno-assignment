@@ -9,7 +9,7 @@ export class Round {
   private discardPile: Card[] = [];
   private players: PlayerHand[] = [];
   private currentPlayerIndex = 0;
-  private direction = 1; // 1 = fremad, -1 = baglæns
+  private direction = 1; 
 
   constructor(players: PlayerHand[], deck: UnoDeck) {
     this.players = players;
@@ -48,7 +48,7 @@ export class Round {
     const topCard = this.discardPile[this.discardPile.length - 1];
     return topCard ?? null;
   }
-  //not must 
+
   checkUno(player: PlayerHand): void {
     if (player.getCardCount() === 1) {
       console.log("UNO! 🎉");
@@ -61,7 +61,7 @@ export class Round {
 
     if (!player || !topCard) throw new Error('Missing player or top card');
 
-    console.log(`🔁 Turn: Player ${this.currentPlayerIndex + 1}`);
+    console.log(`Turn: Player ${this.currentPlayerIndex + 1}`);
     console.log(`Top of discard pile: ${topCard.constructor.name} ${JSON.stringify(topCard)}`);
 
     if (player.hasPlayableCard(topCard)) {
@@ -94,38 +94,38 @@ export class Round {
   private handleSpecialCard(card: Card): void {
     switch (card.type) {
       case CardType.Skip:
-        console.log('⏭️ Skip!');
+        console.log('Skip!');
         this.nextPlayer(); // spring én spiller over
         this.nextPlayer();
         break;
 
       case CardType.Reverse:
         if (this.players.length === 2) {
-          console.log('🔄 Reverse (acts like Skip with 2 players)');
+          console.log('Reverse (acts like Skip with 2 players)');
           this.nextPlayer(); // spring én spiller over
           this.nextPlayer();
         } else {
-          console.log('🔄 Reverse direction!');
+          console.log(' Reverse direction!');
           this.direction *= -1;
           this.nextPlayer();
         }
         break;
 
       case CardType.DrawTwo:
-        console.log('➕2! Next player draws 2 cards');
+        console.log('2! Next player draws 2 cards');
         this.forceDraw(2);
         this.nextPlayer();
         this.nextPlayer(); // spring spillerens tur over
         break;
 
       case CardType.Wild:
-        console.log('🌈 Wild! Choosing a color...');
+        console.log(' Wild! Choosing a color...');
         //this.chooseRandomColor(card as WildCard);
         this.nextPlayer();
         break;
 
       case CardType.WildDrawFour:
-        console.log('🌈➕4! Next player draws 4 cards');
+        console.log('4! Next player draws 4 cards');
         //this.chooseRandomColor(card as WildCard);
         this.forceDraw(4);
         this.nextPlayer();
@@ -160,7 +160,7 @@ private chooseRandomColor(card: WildCard): void {
   const colors: string[] = ['red', 'blue', 'green', 'yellow'];
   const chosen = colors[Math.floor(Math.random() * colors.length)]!;
   (card as any).color = chosen;
-  console.log(`🎨 Wild color chosen: ${chosen}`);
+  console.log(` Wild color chosen: ${chosen}`);
 }
 }
 

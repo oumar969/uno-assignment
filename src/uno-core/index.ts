@@ -49,7 +49,7 @@ import { UnoDeck } from "./deck/UnoDeck";
 import { PlayerHand } from "./player/PlayerHand";
 import { Round } from "./round/Round";
 
-console.log("🎮 UNO Game Test Starting...");
+console.log(" UNO Game Test Starting...");
 
 // Create and shuffle deck
 const deck = new UnoDeck();
@@ -64,24 +64,27 @@ const players = [player1, player2];
 const round = new Round(players, deck);
 
 // Show initial hands
-console.log("🧑‍🎤 Player 1 starting hand:", player1.getCards().map(c => `${c.color ?? "wild"} ${CardType[c.type]}`));
-console.log("🧑‍🎤 Player 2 starting hand:", player2.getCards().map(c => `${c.color ?? "wild"} ${CardType[c.type]}`));
+console.log(" Player 1 starting hand:", player1.getCards().map(c => `${c.color ?? "wild"} ${CardType[c.type]}`));
+console.log(" Player 2 starting hand:", player2.getCards().map(c => `${c.color ?? "wild"} ${CardType[c.type]}`));
 
 // Simulate a few turns
 for (let i = 0; i < 5; i++) {
-  console.log(`\n🔁 Turn ${i + 1}`);
+  console.log(`\n Turn ${i + 1}`);
   try {
     round.playTurn();
   } catch (e) {
     console.error("Error during turn:", e);
     break;
   }
-
   const top = round["discardPile"][round["discardPile"].length - 1];
-  console.log("🃏 Top of discard pile:", `${top.color ?? "wild"} ${CardType[top.type]}`);
+  if (top) {
+    console.log(" Top of discard pile:", `${top.color ?? "wild"} ${CardType[top.type]}`);
+  } else {
+    console.log(" Top of discard pile: (empty)");
+  }
 
   console.log("Player 1 hand:", player1.getCards().map(c => `${c.color ?? "wild"} ${CardType[c.type]}`));
   console.log("Player 2 hand:", player2.getCards().map(c => `${c.color ?? "wild"} ${CardType[c.type]}`));
 }
 
-console.log("\n✅ UNO test complete!");
+console.log("\n UNO test complete!");

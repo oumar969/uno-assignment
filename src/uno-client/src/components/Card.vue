@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
+//MVVM
+//Vue
+//Components
+//View
+//Props
+//Emits
 
 const props = defineProps<{
   color: string | null;
@@ -9,11 +15,9 @@ const props = defineProps<{
 }>();
 
 const imageUrl = computed(() => {
-  // Hvis det er et bagsidekort (til andre spillere)
   if (props.back) {
     return new URL("../assets/cards/Back.png", import.meta.url).href;
   }
-
   return new URL(
     `../assets/cards/${getCardImage(props.color, props.type, props.value)}`,
     import.meta.url
@@ -21,12 +25,7 @@ const imageUrl = computed(() => {
 });
 
 const cardClass = computed(() => {
-  return props.back
-    ? "back"
-    : props.color
-    ? props.color.toLowerCase()
-    : "wild";
-});
+  return props.back ? "back": props.color ? props.color.toLowerCase() : "wild"; });
 
 function getCardImage(
   color: string | null,
@@ -34,7 +33,6 @@ function getCardImage(
   value?: number | null
 ) {
   if (!type) return "Deck.png";
-
   const t = type.toLowerCase();
 
   // Wild cards har ingen farve
@@ -72,9 +70,7 @@ function getCardImage(
 <template>
   <div class="card" :class="cardClass">
     <img
-      class="card-img"
-      :src="imageUrl"
-      :alt="props.back ? 'Back of card' : `${props.color ?? ''} ${props.type ?? ''}`"
+      class="card-img" :src="imageUrl" :alt="props.back ? 'Back of card' : `${props.color ?? ''} ${props.type ?? ''}`"
     />
   </div>
 </template>

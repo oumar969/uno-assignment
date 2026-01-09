@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
-import { useQuery, useMutation } from "@vue/apollo-composable";
 import { onMounted, ref, watch } from "vue";
 import * as api from "../model/api";   
 import Card from "../components/Card.vue";

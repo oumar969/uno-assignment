@@ -12,14 +12,8 @@ Dette opfylder kravene om:
 
 
 /*
-WHAT TO TALK ABOUT (EXAM):
-
 - Union types
 - String literal types
 - const assertions (as const)
 - Domain modeling
-
-What I say:
-“Color is a union of valid UNO colors,
-which prevents invalid values at compile time.”
 */

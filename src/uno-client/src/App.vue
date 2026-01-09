@@ -63,14 +63,14 @@ onMounted(async () => {
 <template>
   <div class="app-container">
     <header class="header">
-      <h1>🎮 UNO Game</h1>
+      <h1>UNO Game</h1>
       <h2 v-if="playerStore.player" class="subheader">Welcome, {{ playerStore.player }}!</h2>
     </header>
 
     <div class="content">
       <nav v-if="playerStore.player" class="sidebar">
         <div class="nav-section">
-          <RouterLink class="link" to="/">🏠 Lobby</RouterLink>
+          <RouterLink class="link" to="/">Lobby</RouterLink>
         </div>
 
         <div class="nav-section" v-if="my_ongoing_games.length > 0">

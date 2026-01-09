@@ -1,3 +1,7 @@
+/*
+bliver ikke brugt endnu
+*/
+
 import { Card } from "../cards/Card";
 import { UnoDeck } from "../deck/UnoDeck";
 import { PlayerHand } from "../player/PlayerHand";

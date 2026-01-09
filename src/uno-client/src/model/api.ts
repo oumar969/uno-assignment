@@ -93,8 +93,18 @@ export async function drawCard(gameId: string, playerId: string) {
   return result.data.drawCard
 }
 
-export function join(value: UnoGameSpecs, player: string) {
-    throw new Error('Function not implemented.')
+// Minimal local type to satisfy callers that pass a game spec object.
+// The server ultimately needs a game id to join.
+export type UnoGameSpecs = {
+  id: string
+  players?: Array<{ id: string; name: string }>
+  winner?: string | null
+  topCard?: { color: string; type: string; value?: string | null } | null
+} & Record<string, unknown>
+
+export async function join(value: UnoGameSpecs | string, player: string) {
+  const gameId = typeof value === "string" ? value : value.id
+  return joinGame(gameId, player)
 }
 export function pending_games() {
   throw new Error('Function not implemented.')
