@@ -4,6 +4,7 @@ Modtager input fra klienten (queries, mutations, subscriptions)
 Kalder metoder på ServerModel
 Indeholder ingen spilregler eller state
 */
+//
 import { serverModel as server, gameEvents } from "./context";
 
 const resolvers = {

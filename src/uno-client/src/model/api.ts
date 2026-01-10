@@ -106,6 +106,7 @@ export async function join(value: UnoGameSpecs | string, player: string) {
   const gameId = typeof value === "string" ? value : value.id
   return joinGame(gameId, player)
 }
+
 export function pending_games() {
   throw new Error('Function not implemented.')
 }

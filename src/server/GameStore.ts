@@ -1,10 +1,4 @@
-/*
-GameStore er et interface, der abstraherer hvor spilstate gemmes:
-MemoryGameStore er en konkret implementation
-ServerModel kender kun interfacet – ikke hvordan data gemmes
-Gør det muligt senere at skifte til fx MongoDB uden at ændre logik
-*/
-
+// handles persistence of game state
 export interface GameStore {
   getGames(): any[];
   getGame(id: string): any | undefined;

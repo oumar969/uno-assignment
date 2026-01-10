@@ -1,11 +1,18 @@
+
 <script setup lang="ts">
 import { computed } from "vue";
-//MVVM
-//Vue
+//web client framework Vue
+//client design pattern MVVM
 //Components
+//rendering  and re-rendering of components
+//binding
+//control structures
 //View
+//slots
 //Props
 //Emits
+//routing
+//state management
 
 const props = defineProps<{
   color: string | null;

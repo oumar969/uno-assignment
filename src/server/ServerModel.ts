@@ -13,7 +13,9 @@ import { PlayerHand } from "../uno-core/player/PlayerHand";
 import { Round } from "../uno-core/round/Round";
 import { CardType } from "../uno-core/types/CardType";
 import { Card } from "../uno-core/cards/Card";
-
+//ServerModel handles all game logic and rules
+//GameStore is used to persist game state
+//EventEmitter is used to emit events to clients
 export class ServerModel {
   constructor(
     private store: GameStore,

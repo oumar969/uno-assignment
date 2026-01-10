@@ -1,5 +1,10 @@
 import gql from "graphql-tag";
-
+// Graphql
+// Graphql with typescript
+// GraphQL schema
+// Graphql type
+// Queries, mutations og subscriptions
+//game store
 export const typeDefs = gql`
   type Card {
     color: String
