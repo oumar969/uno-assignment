@@ -7,7 +7,7 @@ import { Color } from "../types/Color";
 import { Deck } from "./Deck";
 
 export class UnoDeck implements Deck {
-  private cards: Card[] = [];
+  private cards: Card[] = []; 
 
   constructor() {
     this.generateDeck();
