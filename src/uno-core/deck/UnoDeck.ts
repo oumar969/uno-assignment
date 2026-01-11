@@ -6,6 +6,14 @@ import { CardType } from "../types/CardType";
 import { Color } from "../types/Color";
 import { Deck } from "./Deck";
 
+/*
+- Interface implementation
+- Encapsulation of mutable state
+- Array operations
+- Error handling
+- Real-world modeling (physical deck of cards)
+*/
+
 export class UnoDeck implements Deck {
   private cards: Card[] = []; 
 
@@ -18,7 +26,6 @@ export class UnoDeck implements Deck {
     const colors: Color[] = ["red", "yellow", "green", "blue"];
 
     // Number cards
-    //of 
     for (const color of colors) {
       this.cards.push(new NumberCard(color, 0));
       for (let i = 1; i <= 9; i++) {
@@ -43,33 +50,18 @@ export class UnoDeck implements Deck {
 
   draw(): Card {
     if (this.isEmpty()) throw new Error("Deck is empty");
-    return this.cards.pop()!;
+    return this.cards.pop()!;//pop returns Card | undefined
   }
 
   addCard(card: Card): void {
     this.cards.push(card);
   }
-  //randomize 
+  
   shuffle(): void {
-    this.cards.sort(() => Math.random() - 0.5);
+    this.cards.sort(() => Math.random() - 0.5);//randomize array
   }
   
   isEmpty(): boolean {
   return this.cards.length === 0;
   }
 }
-
-
-/*
-WHAT TO TALK ABOUT (EXAM):
-
-- Interface implementation
-- Encapsulation of mutable state
-- Array operations
-- Error handling
-- Real-world modeling (physical deck of cards)
-
-What I say:
-“UnoDeck implements Deck and manages a mutable card pile.
-Mutation is acceptable here because it models a real deck.”
-*/

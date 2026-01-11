@@ -15,11 +15,11 @@ export class PlayerHand {
   }
 
   getCards(): Card[] {
-    return [...this.hand];// defensive copy
+    return [...this.hand];
   }
 
   hasPlayableCard(topCard: Card): boolean {
-    return this.hand.some(card => card.matches(topCard));
+    return this.hand.some(card => card.matches(topCard));//some returns true as soon as it finds a match.
   }
 
   getCardCount(): number {
@@ -28,19 +28,7 @@ export class PlayerHand {
 }
 
 /*
-“Jeg returnerer en kopi af håndens array for at bevare immutability udadtil. 
-Ellers kunne andre dele af systemet mutere hånden direkte.”
-
-
-/*
-WHAT TO TALK ABOUT (EXAM):
-
 - Encapsulation
-- Defensive copying to preserve immutability
-- Single responsibility
-- Polymorphic use of matches()
-
-What I say:
-“PlayerHand encapsulates a player’s cards and protects internal state
-by returning copies instead of the original array.”
+- copy
+- arrow function=> Used as a callback
 */

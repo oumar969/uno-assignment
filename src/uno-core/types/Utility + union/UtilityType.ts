@@ -1,5 +1,5 @@
 import { CardType } from "../CardType";
-import type { CardUnion } from "./CardUnion";
+import type { CardUnion } from "./Discriminated union";
 
 type CardKeys = keyof CardUnion;//giv mig alle mulige keys, som en CardUnion kan have.
 //Removing properties

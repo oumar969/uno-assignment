@@ -2,9 +2,18 @@ import { UnoDeck } from '../deck/UnoDeck';
 import { PlayerHand } from '../player/PlayerHand';
 import { Card } from '../cards/Card';
 import { CardType } from '../types/CardType';
-import { WildCard } from '../cards/WildCard';
-
+/*
+OOP
+Encapsulation 
+Round runs the rules and turn flow
+switch(card.type) for rule branching 
+callback predicate
+Array operations
+narrowing (instanceof WildCard)
+switch på CardType (discriminating union via enum)
+*/
 export class Round {
+  //instance variables or state
   private drawPile: UnoDeck;
   private discardPile: Card[] = [];
   private players: PlayerHand[] = [];
@@ -23,19 +32,19 @@ export class Round {
     this.drawPile.shuffle();
     this.startRound();
   }
-
+ //  applies UNO special-card rules
   private handleSpecialCard(card: Card): void {
     switch (card.type) {
       case CardType.Skip:
         console.log('Skip!');
-        this.nextPlayer(); // spring én spiller over
-        this.nextPlayer();
+        this.nextPlayer();// move to next player...
+        this.nextPlayer(); // ...and skip their turn
         break;
 
       case CardType.Reverse:
         if (this.players.length === 2) {
           console.log('Reverse (acts like Skip with 2 players)');
-          this.nextPlayer(); // spring én spiller over
+          this.nextPlayer(); //move to next player...
           this.nextPlayer();
         } else {
           console.log(' Reverse direction!');
@@ -48,7 +57,7 @@ export class Round {
         console.log('2! Next player draws 2 cards');
         this.forceDraw(2);
         this.nextPlayer();
-        this.nextPlayer(); // spring spillerens tur over
+        this.nextPlayer(); //move to next player...
         break;
 
       case CardType.Wild:
@@ -70,31 +79,28 @@ export class Round {
         break;
     }
   }
+  //Deals 7 cards to each player
   private startRound(): void {
     for (const player of this.players) {
       for (let i = 0; i < 7; i++) {
         player.addCard(this.drawPile.draw());
       }
     }
-    
-    // Træk første kort - må IKKE være Wild eller WildDrawFour
+    // Pick the first top card (must not be wild)
     const tempWildCards: Card[] = [];
     let firstCard = this.drawPile.draw();
     
     while (firstCard.type === CardType.Wild || firstCard.type === CardType.WildDrawFour) {
-      // Gem wild card midlertidigt
       tempWildCards.push(firstCard);
       firstCard = this.drawPile.draw();
     }
     
-    // Put alle wild cards tilbage i discard pile (de vil blive shufflet tilbage senere hvis nødvendigt)
     for (const wildCard of tempWildCards) {
       this.discardPile.push(wildCard);
     }
-    
     this.discardPile.push(firstCard);
   }
-
+  //returns the current top card on the discard pile (or null if empty)
   getTopCard(): Card | null {
     if (this.discardPile.length === 0) return null;
     const topCard = this.discardPile[this.discardPile.length - 1];
@@ -106,7 +112,7 @@ export class Round {
       console.log("UNO! 🎉");
     }
   }
-
+  // executes a single turn for the current player
   playTurn(): void {
     const player = this.players[this.currentPlayerIndex];
     const topCard = this.discardPile[this.discardPile.length - 1];
@@ -123,73 +129,43 @@ export class Round {
       player.playCard(player.getCards().indexOf(card));
       this.discardPile.push(card);
 
-      // 👉 Her håndterer vi specialkort
       this.handleSpecialCard(card);
     } else {
       player.addCard(this.drawPile.draw());
       this.nextPlayer();
     }
   }
- nextTurn(): void {
+  // advances to the next player's turn
+  nextTurn(): void {
     this.currentPlayerIndex =
       (this.currentPlayerIndex + this.direction + this.players.length) %
       this.players.length;
   }
-
+  // returns the PlayerHand for the current player.
   getCurrentPlayer() {
     return this.players[this.currentPlayerIndex];
   }
-
+  // reverseDirection: flips direction (forward <-> reverse).
   reverseDirection(): void {
     this.direction *= -1;
   }
-
+  // advances to the next player based on direction.
   private nextPlayer(): void {
     this.currentPlayerIndex =
       (this.currentPlayerIndex + this.direction + this.players.length) %
       this.players.length;
   }
+  // makes the next player (based on direction) draw a specific number of cards
   private forceDraw(count: number): void {
   const nextIndex =
     (this.currentPlayerIndex + this.direction + this.players.length) %
     this.players.length;
-
   const nextPlayer = this.players[nextIndex];
   if (!nextPlayer) throw new Error("Next player not found");
 
   for (let i = 0; i < count; i++) {
     nextPlayer.addCard(this.drawPile.draw());
   }
+ }
 }
 
-private chooseRandomColor(card: WildCard): void {
-  const colors: string[] = ['red', 'blue', 'green', 'yellow'];
-  const chosen = colors[Math.floor(Math.random() * colors.length)]!;
-  (card as any).color = chosen;
-  console.log(` Wild color chosen: ${chosen}`);
-}
-}
-
-/*
-I denne klasse viser du brug af:
-
-OOP state machine
-narrowing (instanceof WildCard)
-switch på CardType (discriminating union via enum)
-modulo-arithmetik (god game logic)
-polymorf matches() på card types
-✔ Hvad du siger:
-
-“Round repræsenterer en UNO-hånd. Den indeholder spillets state og metoder til at udføre reglerne.
-Jeg bruger enums til card-typer og switch-statements til diskrimination over unionen af korttyper.
-Polymorfien i matches() gør at Round ikke behøver kende til konkrete typer, men blot kalder metoden.”
-*/
-
-/*
-- State machine
-- Game logic orchestration
-- Discriminated union via CardType enum
-- Narrowing with switch(card.type)
-- Polymorphism via matches()
-- Modulo arithmetic for turn handling
-*/
