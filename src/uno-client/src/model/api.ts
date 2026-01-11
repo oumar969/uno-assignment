@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client/core"
 import { apolloClient } from "./apollo"
-
+//These functions are GraphQL client API. Each one contains a query/mutation and calls Apollo.
 //  Hent alle aktive spil
 export async function games() {
   const query = gql`

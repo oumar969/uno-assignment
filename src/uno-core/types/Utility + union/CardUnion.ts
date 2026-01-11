@@ -1,6 +1,3 @@
-import type { NumberCard } from "../../cards/NumberCard";
-import type { SpecialCard } from "../../cards/SpecialCard";
-import type { WildCard } from "../../cards/WildCard";
 import { CardType } from "../CardType";
 import { Color } from "../Color";
 

@@ -7,7 +7,7 @@ export class PlayerHand {
   addCard(card: Card): void {
     this.hand.push(card);
   }
-  //Error Handling & Safety
+
   playCard(index: number): Card {
   const removed = this.hand.splice(index, 1)[0];
   if (!removed) throw new Error('Invalid card index');
@@ -15,7 +15,7 @@ export class PlayerHand {
   }
 
   getCards(): Card[] {
-    return [...this.hand];
+    return [...this.hand];// defensive copy
   }
 
   hasPlayableCard(topCard: Card): boolean {
@@ -28,11 +28,9 @@ export class PlayerHand {
 }
 
 /*
-Encapsulation is an OOP principle where internal state is hidden from outside.
-“Jeg returnerer en kopi af håndens array for at bevare immutability udadtil. Ellers kunne andre dele af systemet mutere hånden direkte.”
+“Jeg returnerer en kopi af håndens array for at bevare immutability udadtil. 
+Ellers kunne andre dele af systemet mutere hånden direkte.”
 
-Dette viser du forstår capsulation + immutability som designprincip.
-*/  
 
 /*
 WHAT TO TALK ABOUT (EXAM):

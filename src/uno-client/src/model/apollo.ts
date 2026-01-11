@@ -1,9 +1,12 @@
 import { ApolloClient, InMemoryCache, HttpLink, split } from "@apollo/client/core"
-import { GraphQLWsLink } from "@apollo/client/link/subscriptions"
-import { getMainDefinition } from "@apollo/client/utilities"
-import { setContext } from "@apollo/client/link/context"
 import { createClient } from "graphql-ws"
-
+import { GraphQLWsLink } from "@apollo/client/link/subscriptions"
+import { setContext } from "@apollo/client/link/context"
+import { getMainDefinition } from "@apollo/client/utilities"
+//we build the “connection layer”. it decides how to send GraphQL operations to the server.
+//Queries and Mutations go over HTTP, 
+//Subscriptions go over WebSocket.
+//We also add an AuthLink to add the player ID to each request header.
 const httpLink = new HttpLink({
   uri: "http://localhost:4000/graphql", 
 })
@@ -14,7 +17,7 @@ const wsLink = new GraphQLWsLink(
   })
 )
 
-// Auth header
+// AuthLink to add player ID to headers
 const authLink = setContext((_, { headers }) => {
   const playerId = localStorage.getItem("myPlayerId");
   return {

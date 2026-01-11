@@ -163,7 +163,6 @@ async function drawCard() {
       <button @click="drawCard">Draw Card</button>
     </div>
 
-    <!-- Color Picker Modal -->
     <Modal v-if="showColorPicker" @close="showColorPicker = false">
       <template #header>
         <h3>Vælg farve:</h3>

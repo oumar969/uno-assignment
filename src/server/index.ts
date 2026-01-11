@@ -1,31 +1,21 @@
+import { typeDefs } from "./schema";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+
 import express from "express";
 import { expressMiddleware } from "@apollo/server/express4";
-import { WebSocketServer } from "ws";
-import { useServer } from "graphql-ws/lib/use/ws";
+
 import { createServer } from "http";
+import { WebSocketServer } from "ws";
+
+import { useServer } from "graphql-ws/lib/use/ws";
 import { ApolloServer } from "@apollo/server";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
-import { makeExecutableSchema } from "@graphql-tools/schema";
-import { typeDefs } from "./schema";
 import resolvers from "./resolvers";
 import cors from "cors";
 import { gameEvents } from "./context";
-/*
-Real-time opdateringer håndteres via:
-EventEmitter på serversiden
-GraphQL Subscriptions over WebSocket
-ServerModel udsender events → klienter opdateres automatisk.
-*/
-/*EventEmitter (server data)
-        ↓
-GraphQL Subscriptions (protocol)
-        ↓
-WebSocket (transport)
-        ↓
-Apollo Client (client)*/
 
-// Use EventEmitter instead of graphql-subscriptions PubSub
-
+//HTTP handles queries and mutations, WebSocket handles subscriptions, 
+// and both share the same /graphql endpoint with a shared schema and context.”
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -38,7 +28,7 @@ const wsServer = new WebSocketServer({
   path: "/graphql",
 });
 
-// GraphQL over WebSocket
+// graphql-ws: connect GraphQL subscriptions to WebSocket transport
 const serverCleanup = useServer(
   {
     schema,
@@ -46,7 +36,6 @@ const serverCleanup = useServer(
       return true;
     },
     context: async (ctx: any) => {
-      // Extract viewerId from connection params
       const viewerId = ctx.connectionParams?.["x-player-id"] || null;
       return { gameEvents, viewerId };
     },
@@ -54,7 +43,7 @@ const serverCleanup = useServer(
   wsServer
 );
 
-// Apollo Server
+// Apollo Server handles Query + Mutation over HTTP
 const server = new ApolloServer({
   schema,
   plugins: [
@@ -85,7 +74,6 @@ async function start() {
       },
     })
   );
-
   const PORT = 4000;
   httpServer.listen(PORT, () => {
     console.log(` Server running at: http://localhost:${PORT}/graphql`);

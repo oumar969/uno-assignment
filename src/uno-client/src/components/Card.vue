@@ -33,7 +33,7 @@ const imageUrl = computed(() => {
 
 const cardClass = computed(() => {
   return props.back ? "back": props.color ? props.color.toLowerCase() : "wild"; });
-
+//getCardImage is 
 function getCardImage(
   color: string | null,
   type: string | null,

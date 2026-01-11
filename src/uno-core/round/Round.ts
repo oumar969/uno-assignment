@@ -10,7 +10,13 @@ export class Round {
   private players: PlayerHand[] = [];
   private currentPlayerIndex = 0;
   private direction = 1; 
-
+  /*private state: {
+    drawPile: UnoDeck;
+    discardPile: Card[];
+    players: PlayerHand[];
+    currentPlayerIndex: number;
+    direction: number;
+  };*/
   constructor(players: PlayerHand[], deck: UnoDeck) {
     this.players = players;
     this.drawPile = deck;
@@ -18,6 +24,52 @@ export class Round {
     this.startRound();
   }
 
+  private handleSpecialCard(card: Card): void {
+    switch (card.type) {
+      case CardType.Skip:
+        console.log('Skip!');
+        this.nextPlayer(); // spring én spiller over
+        this.nextPlayer();
+        break;
+
+      case CardType.Reverse:
+        if (this.players.length === 2) {
+          console.log('Reverse (acts like Skip with 2 players)');
+          this.nextPlayer(); // spring én spiller over
+          this.nextPlayer();
+        } else {
+          console.log(' Reverse direction!');
+          this.direction *= -1;
+          this.nextPlayer();
+        }
+        break;
+
+      case CardType.DrawTwo:
+        console.log('2! Next player draws 2 cards');
+        this.forceDraw(2);
+        this.nextPlayer();
+        this.nextPlayer(); // spring spillerens tur over
+        break;
+
+      case CardType.Wild:
+        console.log(' Wild! Choosing a color...');
+        //this.chooseRandomColor(card as WildCard);
+        this.nextPlayer();
+        break;
+
+      case CardType.WildDrawFour:
+        console.log('4! Next player draws 4 cards');
+        //this.chooseRandomColor(card as WildCard);
+        this.forceDraw(4);
+        this.nextPlayer();
+        this.nextPlayer(); // spring turen over
+        break;
+
+      default:
+        this.nextPlayer();
+        break;
+    }
+  }
   private startRound(): void {
     for (const player of this.players) {
       for (let i = 0; i < 7; i++) {
@@ -92,54 +144,6 @@ export class Round {
     this.direction *= -1;
   }
 
-
-  private handleSpecialCard(card: Card): void {
-    switch (card.type) {
-      case CardType.Skip:
-        console.log('Skip!');
-        this.nextPlayer(); // spring én spiller over
-        this.nextPlayer();
-        break;
-
-      case CardType.Reverse:
-        if (this.players.length === 2) {
-          console.log('Reverse (acts like Skip with 2 players)');
-          this.nextPlayer(); // spring én spiller over
-          this.nextPlayer();
-        } else {
-          console.log(' Reverse direction!');
-          this.direction *= -1;
-          this.nextPlayer();
-        }
-        break;
-
-      case CardType.DrawTwo:
-        console.log('2! Next player draws 2 cards');
-        this.forceDraw(2);
-        this.nextPlayer();
-        this.nextPlayer(); // spring spillerens tur over
-        break;
-
-      case CardType.Wild:
-        console.log(' Wild! Choosing a color...');
-        //this.chooseRandomColor(card as WildCard);
-        this.nextPlayer();
-        break;
-
-      case CardType.WildDrawFour:
-        console.log('4! Next player draws 4 cards');
-        //this.chooseRandomColor(card as WildCard);
-        this.forceDraw(4);
-        this.nextPlayer();
-        this.nextPlayer(); // spring turen over
-        break;
-
-      default:
-        this.nextPlayer();
-        break;
-    }
-  }
-
   private nextPlayer(): void {
     this.currentPlayerIndex =
       (this.currentPlayerIndex + this.direction + this.players.length) %
@@ -182,16 +186,10 @@ Polymorfien i matches() gør at Round ikke behøver kende til konkrete typer, me
 */
 
 /*
-WHAT TO TALK ABOUT (EXAM):
-
 - State machine
 - Game logic orchestration
 - Discriminated union via CardType enum
 - Narrowing with switch(card.type)
 - Polymorphism via matches()
 - Modulo arithmetic for turn handling
-
-What I say:
-“Round represents a single UNO hand and contains the game rules.
-I use discriminated unions, narrowing, and polymorphism to handle card behavior.”
 */

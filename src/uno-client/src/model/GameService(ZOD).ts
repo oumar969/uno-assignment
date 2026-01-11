@@ -1,9 +1,10 @@
 import * as api from "./api.js";
 import { z } from "zod";
-
+//validate server responses at runtime
+//TypeScript types are only at compile time. Zod checks at runtime
+//So if the server sends wrong data, Zod will throw an error instead of your UI breaking.
 export class GameService {
 
-  // Zod schema as OOP validation rules
   private static CardSchema = z.object({
     color: z.string().nullable(),
     type: z.string(),

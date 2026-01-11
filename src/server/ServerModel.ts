@@ -1,6 +1,4 @@
 /*
-ServerModel er den autoritative server-logik:
-Indeholder alle spilregler (UNO-regler, tur-logik, specialkort)
 Validerer handlinger (fx “not your turn”)
 Orkestrerer spilflow (join, playCard, drawCard)
 Udsender events via EventEmitter
@@ -14,6 +12,7 @@ import { Round } from "../uno-core/round/Round";
 import { CardType } from "../uno-core/types/CardType";
 import { Card } from "../uno-core/cards/Card";
 //ServerModel handles all game logic and rules
+//Contains all game rules (UNO rules, turn logic, special cards)
 //GameStore is used to persist game state
 //EventEmitter is used to emit events to clients
 export class ServerModel {
@@ -23,7 +22,6 @@ export class ServerModel {
   ) {}
 
   /* ------------------ GAME CREATION ------------------ */
-
   createGame() {
     const id = uuidv4();
     const deck = new UnoDeck();
@@ -51,7 +49,6 @@ export class ServerModel {
   }
 
   /* ------------------ JOIN GAME ------------------ */
-
   joinGame(gameId: string, name: string, viewerId?: string) {
     const game = this.store.getGame(gameId);
     if (!game) throw new Error("Game not found");
@@ -76,7 +73,6 @@ export class ServerModel {
   }
 
   /* ------------------ PLAY CARD ------------------ */
-
   playCard(
     gameId: string,
     playerId: string,
@@ -143,7 +139,6 @@ export class ServerModel {
   }
 
   /* ------------------ DRAW CARD ------------------ */
-
   drawCard(gameId: string, playerId: string) {
     const game = this.requireGame(gameId);
     const player = this.requirePlayer(game, playerId);
@@ -159,7 +154,6 @@ export class ServerModel {
   }
 
   /* ------------------ HELPERS ------------------ */
-
   private emit(gameId: string, game: any) {
     this.gameEvents.emit("GAME_UPDATED", { gameId, game });
   }
@@ -208,7 +202,7 @@ export class ServerModel {
   }
 
   private drawCardsToNext(game: any, count: number) {
-    const next =
+    const next =  
       (game.currentPlayerIndex + game.direction + game.players.length) %
       game.players.length;
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import Card from "./Card.vue"
 
-//Emits
 defineProps<{  hand: { color: string; type: string; value?: number | null }[] }>()
 
 defineEmits<{ playCard: [index: number] }>()

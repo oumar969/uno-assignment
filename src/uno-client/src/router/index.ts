@@ -3,7 +3,7 @@ import GameLobby from "../views/GameLobby.vue";
 import GameBoard from "../views/GameBoard.vue";
 import Login from "@/views/Login.vue";
 import Pending from "@/views/Pending.vue";
-
+//dynamic routing
 // (Single Page Application)
 // definde routes for the application and map them to components
 const routes = [

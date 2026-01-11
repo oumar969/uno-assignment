@@ -18,6 +18,7 @@ export class UnoDeck implements Deck {
     const colors: Color[] = ["red", "yellow", "green", "blue"];
 
     // Number cards
+    //of 
     for (const color of colors) {
       this.cards.push(new NumberCard(color, 0));
       for (let i = 1; i <= 9; i++) {
@@ -45,16 +46,16 @@ export class UnoDeck implements Deck {
     return this.cards.pop()!;
   }
 
-  shuffle(): void {
-    this.cards.sort(() => Math.random() - 0.5);
-  }
-
   addCard(card: Card): void {
     this.cards.push(card);
   }
-
+  //randomize 
+  shuffle(): void {
+    this.cards.sort(() => Math.random() - 0.5);
+  }
+  
   isEmpty(): boolean {
-    return this.cards.length === 0;
+  return this.cards.length === 0;
   }
 }
 

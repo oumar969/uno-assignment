@@ -3,21 +3,14 @@ import { MemoryGameStore } from "./MemoryGameStore";
 import { ServerModel } from "./ServerModel";
 
 export const gameEvents = new EventEmitter();
-export const gameStore = new MemoryGameStore();
-export const serverModel = new ServerModel(gameStore, gameEvents);
+export const gameStore = new MemoryGameStore();//a set of functions for saving and loading games
+export const serverModel = new ServerModel(gameStore, gameEvents);//business logic
 
 /*
-eventEmitter is used to emit events to clients
+emit events to clients
 eventEmitter is an event bus. The server can “broadcast” messages like: GAME_UPDATED
-GameStore handles persistence of game state
-ServerModel handles all game logic and rules
-
-GameStore
-
-EventEmitter
-
-ServerModel : This is your main business logic (application logic).
+eventEmitter sends messages when the game changes (like “GAME_UPDATED”) so clients can update live.
+ServerModel : the main game logic. It checks rules, changes the game, saves it, and sends update events
 gameStore to save/load games
 gameEvents to notify subscribers when something changes
-Dette undgår cirkulære imports og gør arkitekturen mere robust.
 */

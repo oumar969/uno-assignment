@@ -1,10 +1,9 @@
 /*
-Resolvers fungerer udelukkende som API-adaptere:
-Modtager input fra klienten (queries, mutations, subscriptions)
-Kalder metoder på ServerModel
-Indeholder ingen spilregler eller state
+Resolvers connect GraphQL api with ServerModel
+Receive input from client (queries, mutations, subscriptions)
+Call methods on ServerModel
+Contain no game rules or state
 */
-//
 import { serverModel as server, gameEvents } from "./context";
 
 const resolvers = {

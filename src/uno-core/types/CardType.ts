@@ -7,34 +7,9 @@ export enum CardType {
   WildDrawFour
 }
 
-
-/*
-import { Card } from "../cards/Card";
-import { CardType } from "./CardType";
-
-export type TypedCard<T extends CardType> = Extract<Card, { type: T }>; 
-*/
-
 /*
 discriminated union 
 
-export type Card =
-  | NumberCard
-  | SkipCard
-  | ReverseCard
-  | DrawTwoCard
-  | WildCard
-  | WildDrawFourCard;
-
-then we can define a type 'Card' that can be any of these specific card types
-as
-export type NumberCard = {
-  type: CardType.Number;
-  color: Color;
-  value: number;
-};
-
-*/
 /*
 WHAT TO TALK ABOUT (EXAM):
 
