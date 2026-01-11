@@ -114,7 +114,7 @@ async function drawCard() {
       <button @click="$router.push('/')">Tilbage til lobby</button>
     </div>
 
-    <!-- 🔹 Spillerliste -->
+    <!--  Spillerliste -->
     <div v-if="result?.players?.length">
       <p>
         <strong>Players ({{ result.players.length }}):</strong>

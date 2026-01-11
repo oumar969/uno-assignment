@@ -1,4 +1,4 @@
-<!-- components/Modal.vue 
+<!--  
 The header and footer slots allow the parent component to inject custom UI,
 -->
 <template>

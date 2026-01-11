@@ -1,6 +1,6 @@
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed } from "vue";// helps with automatic updates if props change, imageUrl updates
 //web client framework Vue
 //client design pattern MVVM
 //Components
@@ -33,7 +33,7 @@ const imageUrl = computed(() => {
 
 const cardClass = computed(() => {
   return props.back ? "back": props.color ? props.color.toLowerCase() : "wild"; });
-//getCardImage is 
+//getCardImage function helps to choose the correct image file for a card based on its color, type, and value.
 function getCardImage(
   color: string | null,
   type: string | null,

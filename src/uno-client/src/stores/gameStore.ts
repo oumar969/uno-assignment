@@ -1,7 +1,13 @@
 /*
-gameStore.ts
+Composition setup vs Options API(getters, actions, state)
 Central store for game state and actions
-bruges til at håndtere spillets tilstand og interaktioner
+State (reactive refs):
+- game: the current game data
+- myPlayerId: stored playerid
+
+Actions (functions that update state / call backend):
+- loadGame(id): fetch game data from server and set game ref
+- joinGame(gameId, name): 
 */
 
 import { defineStore } from "pinia";

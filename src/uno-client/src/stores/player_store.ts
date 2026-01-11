@@ -5,4 +5,3 @@ export const usePlayerStore = defineStore('player', () => {
   const player = ref<string | undefined>(undefined)
   return { player }
 })
-// Brug denne store i stedet for localStorage direkte i komponenter.
