@@ -16,7 +16,7 @@ export const typeDefs = gql`
  type Player {
   id: ID!
   name: String!
-  hand: [Card!]!     # kun egen hånd
+  hand: [Card!]!     
   handCount: Int!    # andre spillere ser kun hvor mange kort
 }
 type Subscription {
@@ -24,7 +24,7 @@ type Subscription {
 }
 type Game {
   id: ID!
-  players: [Player!]!
+  players: [Player!]! #exclamation mark
   topCard: Card
   currentPlayer: Player
   activeColor: String
@@ -41,7 +41,7 @@ type Game {
   type Mutation {
     createGame: Game!
     joinGame(gameId: ID!, name: String!): Game!
-  playCard(gameId: ID!, playerId: ID!, cardIndex: Int!, chosenColor: String): Game! # 👈 vigtigt
+  playCard(gameId: ID!, playerId: ID!, cardIndex: Int!, chosenColor: String): Game! 
     drawCard(gameId: ID!, playerId: ID!): Game!
   }
 `;

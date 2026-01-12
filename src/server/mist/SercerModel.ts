@@ -1,7 +1,7 @@
 /*
 Refactored logic to move game rules and validation to uno-core classes.
 */
-import { GameStore } from "../GameStore";
+import { GameStore } from "../GameStore#";
 import { EventEmitter } from "events";
 import { v4 as uuidv4 } from "uuid";
 import { UnoDeck } from "../../uno-core/deck/UnoDeck";

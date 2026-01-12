@@ -10,12 +10,11 @@ import { WebSocketServer } from "ws";
 import { useServer } from "graphql-ws/lib/use/ws";
 import { ApolloServer } from "@apollo/server";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
-import resolvers from "./resolvers";
+import resolvers from "./resolvers#";
 import cors from "cors";
 import { gameEvents } from "./context";
 
 //HTTP handles queries and mutations, WebSocket handles subscriptions, 
-// and both share the same /graphql endpoint with a shared schema and context.”
 
 const schema = makeExecutableSchema({ typeDefs, resolvers });
 
@@ -78,7 +77,7 @@ async function start() {
   httpServer.listen(PORT, () => {
     console.log(` Server running at: http://localhost:${PORT}/graphql`);
   });
-}
+}//sets up the /graphql endpoint with CORS + JSON parsing
 
 start().catch((err) => {
   console.error("Server start failed:", err);

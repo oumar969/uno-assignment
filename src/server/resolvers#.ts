@@ -1,15 +1,14 @@
 /*
-Resolvers connect GraphQL api with ServerModel
+Resolvers connect GraphQL api with ServerModel.  parent: result of the previous resolver.[] args:client input,[] context:shared data for the request, 
 Receive input from client (queries, mutations, subscriptions)
-Call methods on ServerModel
-Contain no game rules or state
+Call methods on ServerModel and Contain no game rules or state
 */
 import { serverModel as server, gameEvents } from "./context";
 
 const resolvers = {
   Query: {
     games: () => server.getGames(),
-
+    //()
     game: (_: any, { id }: { id: string }) => {
       return server.getGame(id);
     },

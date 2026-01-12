@@ -1,4 +1,4 @@
-import { GameStore } from "./GameStore";
+import { GameStore } from "./GameStore#";
 //MemoryGameStore er en simpel implementation af GameStore der gemmer spil i hukommelsen
 export class MemoryGameStore implements GameStore {
   private games: any[] = [];

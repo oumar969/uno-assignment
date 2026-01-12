@@ -1,7 +1,7 @@
 import { CardType } from "../CardType";
 import type { CardUnion } from "./Discriminated union";
-
-type CardKeys = keyof CardUnion;//giv mig alle mulige keys, som en CardUnion kan have.
+//giv mig alle mulige keys, som en CardUnion kan have.
+type CardKeys = keyof CardUnion;
 //Removing properties
 export type TypedCardOmit<T extends CardType> = Omit<CardUnion, "type">;
 //Filtering union members

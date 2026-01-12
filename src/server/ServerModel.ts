@@ -1,18 +1,13 @@
-/*
-Validerer handlinger (fx “not your turn”)
-Orkestrerer spilflow (join, playCard, drawCard)
-Udsender events via EventEmitter
-*/
-import { GameStore } from "./GameStore";
+import { GameStore } from "./GameStore#";
 import { EventEmitter } from "events";
+
 import { v4 as uuidv4 } from "uuid";
 import { UnoDeck } from "../uno-core/deck/UnoDeck";
 import { PlayerHand } from "../uno-core/player/PlayerHand";
 import { Round } from "../uno-core/round/Round";
 import { CardType } from "../uno-core/types/CardType";
 import { Card } from "../uno-core/cards/Card";
-//ServerModel handles all game logic and rules
-//Contains all game rules (UNO rules, turn logic, special cards)
+// some game logic and rules
 //GameStore is used to persist game state
 //EventEmitter is used to emit events to clients
 export class ServerModel {
@@ -21,7 +16,6 @@ export class ServerModel {
     private gameEvents: EventEmitter
   ) {}
 
-  /* ------------------ GAME CREATION ------------------ */
   createGame() {
     const id = uuidv4();
     const deck = new UnoDeck();
@@ -187,15 +181,12 @@ export class ServerModel {
     if (type === "Reverse") {
       game.direction *= -1;
     }
-
     if (type === "Skip") {
       this.advanceTurn(game);
     }
-
     if (type === "DrawTwo") {
       this.drawCardsToNext(game, 2);
     }
-
     if (type === "WildDrawFour") {
       this.drawCardsToNext(game, 4);
     }
@@ -211,12 +202,10 @@ export class ServerModel {
         game.round.drawPile.draw()
       );
     }
-
     game.currentPlayerIndex = next;
   }
 
   /* ------------------ READ MODELS ------------------ */
-
   getTopCard(game: any) {
     const top = game.round.discardPile.at(-1);
     if (!top) return null;
@@ -227,12 +216,10 @@ export class ServerModel {
       value: (top as any).value ?? null,
     };
   }
-
   getCurrentPlayer(game: any) {
     const p = game.players[game.currentPlayerIndex];
     return p ? { id: p.id, name: p.name } : null;
   }
-
   getVisibleHand(player: any, viewerId?: string) {
     if (!viewerId || player.id === viewerId) {
       return player.hand.getCards().map((c: Card) => ({
@@ -242,7 +229,6 @@ export class ServerModel {
         back: false,
       }));
     }
-
     return player.hand.getCards().map(() => ({
       color: null,
       type: null,
